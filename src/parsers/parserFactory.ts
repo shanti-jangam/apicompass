@@ -2,6 +2,9 @@ import { RouteParser } from './parser';
 import { ExpressParser } from './expressParser';
 import { FlaskParser } from './flaskParser';
 import { DjangoParser } from './djangoParser';
+import { FastApiParser } from './fastApiParser';
+import { GoParser } from './goParser';
+import { NestJsParser } from './nestJsParser';
 import { Framework } from '../models/route';
 
 /**
@@ -16,7 +19,7 @@ export class ParserFactory {
   private parsers: Map<Framework, RouteParser> = new Map();
 
   constructor(enabledFrameworks?: Framework[]) {
-    const frameworks = enabledFrameworks ?? ['express', 'flask', 'django'];
+    const frameworks = enabledFrameworks ?? ['express', 'flask', 'django', 'fastapi', 'go', 'nestjs'];
 
     if (frameworks.includes('express')) {
       this.parsers.set('express', new ExpressParser());
@@ -26,6 +29,15 @@ export class ParserFactory {
     }
     if (frameworks.includes('django')) {
       this.parsers.set('django', new DjangoParser());
+    }
+    if (frameworks.includes('fastapi')) {
+      this.parsers.set('fastapi', new FastApiParser());
+    }
+    if (frameworks.includes('go')) {
+      this.parsers.set('go', new GoParser());
+    }
+    if (frameworks.includes('nestjs')) {
+      this.parsers.set('nestjs', new NestJsParser());
     }
   }
 

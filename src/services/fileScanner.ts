@@ -44,7 +44,7 @@ export class FileScanner {
    * Scans a single folder for candidate files using VS Code's findFiles API.
    */
   private async scanFolder(folderUri: vscode.Uri): Promise<string[]> {
-    const includePattern = '**/*.{js,ts,mjs,cjs,py}';
+    const includePattern = '**/*.{js,ts,mjs,cjs,py,go}';
     const excludePatterns = this.config.excludePaths.join(',');
 
     // Build a RelativePattern to scope the search to this folder

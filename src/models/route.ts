@@ -32,7 +32,7 @@ export interface Route {
 /**
  * Supported backend frameworks.
  */
-export type Framework = 'express' | 'flask' | 'django';
+export type Framework = 'express' | 'flask' | 'django' | 'fastapi' | 'go' | 'nestjs';
 
 /**
  * Result returned by a parser after scanning a single file.

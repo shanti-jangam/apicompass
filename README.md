@@ -2,7 +2,7 @@
 
 **Automated API Route Visualizer for VS Code**
 
-APICompass is a Visual Studio Code extension that scans your backend codebase and gives you an organized, clickable tree of every REST API endpoint — right inside the editor sidebar. It supports **Express.js**, **Flask**, and **Django** out of the box, and updates automatically as you edit your code.
+APICompass is a Visual Studio Code extension that scans your backend codebase and gives you an organized, clickable tree of every REST API endpoint — right inside the editor sidebar. It supports **Express.js**, **NestJS**, **Flask**, **Django**, **FastAPI**, and **Go** (Gin, Echo, Chi, Fiber, net/http) out of the box, and updates automatically as you edit your code.
 
 ---
 
@@ -30,7 +30,7 @@ APICompass scans the workspace using static analysis, extracts every route defin
 
 | Feature                   | Description                                                                      |
 | ------------------------- | -------------------------------------------------------------------------------- |
-| **Multi-framework**       | Express.js, Flask, and Django detected automatically                             |
+| **Multi-framework**       | Express.js, NestJS, Flask, Django, FastAPI, and Go detected automatically        |
 | **Interactive tree view** | Routes shown in a collapsible sidebar grouped by file, HTTP method, or framework |
 | **Click-to-navigate**     | Click any route to jump to the exact file and line                               |
 | **Real-time updates**     | File watcher detects saves and re-parses only the changed file                   |
@@ -51,6 +51,26 @@ app.post('/users', handler);
 router.put('/users/:id', handler);
 app.delete('/users/:id', handler);
 app.route('/items').get(listItems).post(createItem);
+```
+
+### NestJS (TypeScript / JavaScript)
+
+```typescript
+@Controller('users')
+export class UsersController {
+  @Get()           // GET /users
+  findAll() {}
+
+  @Get(':id')      // GET /users/:id
+  findOne() {}
+
+  @Post()          // POST /users
+  create() {}
+
+  @Put(':id')      // PUT /users/:id
+  @Delete(':id')   // DELETE /users/:id
+  @Patch(':id')    // PATCH /users/:id
+}
 ```
 
 ### Flask (Python)
@@ -74,6 +94,37 @@ urlpatterns = [
     path('users/<int:pk>/', views.user_detail),
     re_path(r'^articles/(?P<year>[0-9]{4})/$', views.year_archive),
 ]
+```
+
+### FastAPI (Python)
+
+```python
+@app.get("/users")
+async def get_users(): ...
+
+@router.post("/items")
+async def create_item(): ...
+
+@app.get("/users/{user_id}")
+async def get_user(user_id: int): ...
+
+@app.api_route("/custom", methods=["GET", "POST"])
+async def custom(): ...
+```
+
+### Go (Gin, Echo, Chi, Fiber, net/http)
+
+```go
+// Gin, Echo, Fiber
+r.GET("/users", handler)
+r.POST("/users", handler)
+
+// Chi (PascalCase methods)
+r.Get("/items", handler)
+r.Post("/items", handler)
+
+// net/http
+http.HandleFunc("/health", handler)
 ```
 
 ---
@@ -107,7 +158,7 @@ npm test
 1. Open the `apicompass` folder in VS Code.
 2. Press **F5** (or choose _Run > Start Debugging_).
 3. A new _Extension Development Host_ window opens.
-4. Open any project that contains Express, Flask, or Django routes.
+4. Open any project that contains Express, NestJS, Flask, Django, FastAPI, or Go routes.
 5. Click the **APICompass** icon in the activity bar (left sidebar).
 6. Routes are listed automatically. Click any route to jump to its definition.
 
@@ -125,12 +176,12 @@ Install the `.vsix` file via _Extensions > ··· > Install from VSIX…_ in VS 
 
 Open **Settings** (`Ctrl+,`) and search for `apicompass`.
 
-| Setting                        | Default                                              | Description                                      |
-| ------------------------------ | ---------------------------------------------------- | ------------------------------------------------ |
-| `apicompass.includePaths`      | `[]` (scan everything)                               | Glob patterns for folders to include             |
-| `apicompass.excludePaths`      | `node_modules, .git, venv, __pycache__, dist, build` | Glob patterns for folders to skip                |
-| `apicompass.enabledFrameworks` | `["express", "flask", "django"]`                     | Which frameworks to scan for                     |
-| `apicompass.groupBy`           | `"file"`                                             | Group routes by `file`, `method`, or `framework` |
+| Setting                        | Default                                                     | Description                                      |
+| ------------------------------ | ----------------------------------------------------------- | ------------------------------------------------ |
+| `apicompass.includePaths`      | `[]` (scan everything)                                      | Glob patterns for folders to include             |
+| `apicompass.excludePaths`      | `node_modules, .git, venv, __pycache__, dist, build`        | Glob patterns for folders to skip                |
+| `apicompass.enabledFrameworks` | `["express", "flask", "django", "fastapi", "go", "nestjs"]` | Which frameworks to scan for                     |
+| `apicompass.groupBy`           | `"file"`                                                    | Group routes by `file`, `method`, or `framework` |
 
 ---
 
@@ -154,7 +205,10 @@ src/
 │   ├── parserFactory.ts        Creates parsers by framework (Factory pattern)
 │   ├── expressParser.ts        Express.js route extraction
 │   ├── flaskParser.ts          Flask route extraction
-│   └── djangoParser.ts         Django URL pattern extraction
+│   ├── djangoParser.ts         Django URL pattern extraction
+│   ├── fastApiParser.ts        FastAPI route extraction
+│   ├── goParser.ts             Go (Gin, Echo, Chi, Fiber, net/http) route extraction
+│   └── nestJsParser.ts         NestJS controller route extraction
 ├── services/
 │   ├── routeManager.ts         Orchestrates scanning, caching, and events
 │   └── fileScanner.ts          Workspace file discovery
@@ -190,15 +244,15 @@ npm run test:coverage
 
 Current coverage:
 
-| Metric      | Value  |
-| ----------- | ------ |
-| Statements  | 97.36% |
-| Functions   | 100%   |
-| Lines       | 97.26% |
-| Test suites | 4      |
-| Tests       | 43     |
+| Metric      | Value |
+| ----------- | ----- |
+| Statements  | 97%+  |
+| Functions   | 100%  |
+| Lines       | 97%+  |
+| Test suites | 7     |
+| Tests       | 88    |
 
-Test fixtures for Express, Flask, and Django are in `test/fixtures/`.
+Test fixtures for Express, NestJS, Flask, Django, FastAPI, and Go are in `test/fixtures/`.
 
 ---
 
@@ -206,8 +260,9 @@ Test fixtures for Express, Flask, and Django are in `test/fixtures/`.
 
 - [ ] Combine `app.use()` mount prefixes with router paths (Express)
 - [ ] Combine `url_prefix` from Blueprints with route paths (Flask)
-- [ ] NestJS decorator support (`@Get()`, `@Post()`)
-- [ ] FastAPI support (`@app.get()`, `@app.post()`)
+- [x] NestJS decorator support (`@Get()`, `@Post()`, `@Controller()`) — done
+- [x] FastAPI support (`@app.get()`, `@app.post()`) — done
+- [x] Go support (Gin, Echo, Chi, Fiber, net/http) — done
 - [ ] Route deduplication
 - [ ] Keyboard shortcuts and context menus
 - [ ] Export routes to JSON / OpenAPI stub

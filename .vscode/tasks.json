@@ -2,10 +2,19 @@
   "version": "2.0.0",
   "tasks": [
     {
+      "label": "webpack-watch",
       "type": "npm",
       "script": "watch",
-      "problemMatcher": "$ts-webpack-watch",
       "isBackground": true,
+      "problemMatcher": {
+        "owner": "typescript",
+        "pattern": { "regexp": "^$" },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "Compiler starting",
+          "endsPattern": "compiled successfully|Compiler finished"
+        }
+      },
       "presentation": {
         "reveal": "never"
       },

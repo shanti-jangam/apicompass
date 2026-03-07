@@ -38,7 +38,14 @@ export class Config {
   }
 
   get enabledFrameworks(): Framework[] {
-    return this.config.get<Framework[]>('enabledFrameworks', ['express', 'flask', 'django']);
+    return this.config.get<Framework[]>('enabledFrameworks', [
+      'express',
+      'flask',
+      'django',
+      'fastapi',
+      'go',
+      'nestjs',
+    ]);
   }
 
   get groupBy(): 'file' | 'method' | 'framework' {

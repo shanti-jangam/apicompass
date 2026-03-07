@@ -1,7 +1,7 @@
 {
   "name": "apicompass",
   "displayName": "APICompass",
-  "description": "Automated API Route Visualizer for VS Code — discover, visualize, and navigate REST API routes across Express.js, Flask, and Django projects.",
+  "description": "Automated API Route Visualizer for VS Code — discover, visualize, and navigate REST API routes across Express.js, NestJS, Flask, Django, FastAPI, and Go projects.",
   "version": "0.1.0",
   "publisher": "surya-v",
   "engines": {
@@ -15,8 +15,12 @@
     "api",
     "routes",
     "express",
+    "nestjs",
     "flask",
     "django",
+    "fastapi",
+    "go",
+    "golang",
     "rest",
     "navigation",
     "visualization"
@@ -24,7 +28,8 @@
   "activationEvents": [
     "workspaceContains:**/*.js",
     "workspaceContains:**/*.ts",
-    "workspaceContains:**/*.py"
+    "workspaceContains:**/*.py",
+    "workspaceContains:**/*.go"
   ],
   "main": "./dist/extension.js",
   "contributes": {
@@ -100,9 +105,12 @@
           "default": [
             "express",
             "flask",
-            "django"
+            "django",
+            "fastapi",
+            "go",
+            "nestjs"
           ],
-          "description": "Frameworks to scan for (express, flask, django)."
+          "description": "Frameworks to scan for (express, flask, django, fastapi, go, nestjs)."
         },
         "apicompass.groupBy": {
           "type": "string",

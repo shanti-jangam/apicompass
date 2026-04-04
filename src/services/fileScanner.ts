@@ -42,18 +42,45 @@ export class FileScanner {
 
   /**
    * Scans a single folder for candidate files using VS Code's findFiles API.
+   * When `apicompass.includePaths` is set, only files under those globs are
+   * returned; otherwise the entire folder is searched.
    */
   private async scanFolder(folderUri: vscode.Uri): Promise<string[]> {
-    const includePattern = '**/*.{js,ts,mjs,cjs,py,go}';
+    const fileExtGlob = '*.{js,ts,mjs,cjs,py,go}';
     const excludePatterns = this.config.excludePaths.join(',');
-
-    // Build a RelativePattern to scope the search to this folder
-    const pattern = new vscode.RelativePattern(folderUri, includePattern);
     const excludeGlob = excludePatterns ? `{${excludePatterns}}` : undefined;
 
-    const uris = await vscode.workspace.findFiles(pattern, excludeGlob);
+    const includePaths = this.config.includePaths;
 
-    return uris.map((uri) => uri.fsPath);
+    if (includePaths.length === 0) {
+      const pattern = new vscode.RelativePattern(folderUri, `**/${fileExtGlob}`);
+      const uris = await vscode.workspace.findFiles(pattern, excludeGlob);
+      return uris.map((uri) => uri.fsPath);
+    }
+
+    // Run a findFiles call per include pattern, then deduplicate.
+    const seen = new Set<string>();
+    const results: string[] = [];
+
+    for (const inc of includePaths) {
+      // Combine user-supplied directory glob with the file-extension filter,
+      // e.g. "src/api/**" → "src/api/**/*.{js,ts,mjs,cjs,py,go}"
+      const combined = inc.endsWith('/**')
+        ? `${inc}/${fileExtGlob}`
+        : `${inc}/**/${fileExtGlob}`;
+
+      const pattern = new vscode.RelativePattern(folderUri, combined);
+      const uris = await vscode.workspace.findFiles(pattern, excludeGlob);
+
+      for (const uri of uris) {
+        if (!seen.has(uri.fsPath)) {
+          seen.add(uri.fsPath);
+          results.push(uri.fsPath);
+        }
+      }
+    }
+
+    return results;
   }
 
   /**

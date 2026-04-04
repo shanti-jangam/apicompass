@@ -1,8 +1,8 @@
 import * as vscode from 'vscode';
 import { Route } from './models/route';
 import { RouteManager } from './services/routeManager';
-import { RouteTreeDataProvider } from './views/treeDataProvider';
 import { Logger } from './utils/logger';
+import { RouteTreeDataProvider } from './views/treeDataProvider';
 
 /**
  * Extension entry point.
@@ -81,7 +81,7 @@ export function activate(context: vscode.ExtensionContext): void {
   });
 
   // ── File watcher ───────────────────────────────────────────────
-  const watcher = vscode.workspace.createFileSystemWatcher('**/*.{js,ts,mjs,cjs,py}');
+  const watcher = vscode.workspace.createFileSystemWatcher('**/*.{js,ts,mjs,cjs,py,go}');
 
   // Debounce helper
   let debounceTimer: NodeJS.Timeout | undefined;

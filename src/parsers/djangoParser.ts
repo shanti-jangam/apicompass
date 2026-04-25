@@ -1,6 +1,6 @@
-import { RouteParser } from './parser';
-import { ParseResult, Route } from '../models/route';
 import * as path from 'path';
+import { ParseResult, Route } from '../models/route';
+import { RouteParser } from './parser';
 
 /**
  * Parser for Django URL pattern definitions.
@@ -73,7 +73,7 @@ export class DjangoParser extends RouteParser {
       if (match) {
         const urlPattern = match[1];
 
-        // Skip include() patterns — they are namespace references, not endpoints
+        // Skip include() patterns - they are namespace references, not endpoints
         if (/include\s*\(/.test(line)) {
           continue;
         }

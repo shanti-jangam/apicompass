@@ -2,7 +2,7 @@
 
 **Automated API Route Visualizer for VS Code**
 
-APICompass is a Visual Studio Code extension that scans your backend codebase and gives you an organized, clickable tree of every REST API endpoint — right inside the editor sidebar. It supports **Express.js**, **NestJS**, **Flask**, **Django**, **FastAPI**, and **Go** (Gin, Echo, Chi, Fiber, net/http) out of the box, and updates automatically as you edit your code.
+APICompass is a Visual Studio Code extension that scans your backend codebase and gives you an organized, clickable tree of every REST API endpoint - right inside the editor sidebar. It supports **Express.js**, **NestJS**, **Flask**, **Django**, **FastAPI**, and **Go** (Gin, Echo, Chi, Fiber, net/http) out of the box, and updates automatically as you edit your code.
 
 ---
 
@@ -243,7 +243,7 @@ src/
 │   ├── logger.ts               OutputChannel-based logger (Singleton)
 │   ├── config.ts               Reads VS Code settings (Singleton)
 │   └── deduplicateRoutes.ts    Route deduplication utility
-└── extension.ts                Entry point — wires everything together
+└── extension.ts                Entry point - wires everything together
 ```
 
 ### Design Patterns Used
@@ -283,16 +283,16 @@ Test fixtures for Express, NestJS, Flask, Django, FastAPI, and Go are in `test/f
 
 ## Roadmap
 
-- [x] Cross-file mount prefix resolution (Express, Flask, FastAPI) — done
-- [x] Same-file `app.use()` / `url_prefix` / `include_router` prefix resolution — done
-- [x] NestJS decorator support (`@Get()`, `@Post()`, `@Controller()`) — done
-- [x] FastAPI support (`@app.get()`, `@app.post()`) — done
-- [x] Go support (Gin, Echo, Chi, Fiber, net/http) — done
-- [x] Route deduplication — done
-- [x] Keyboard shortcuts and context menus — done
-- [x] Export routes to JSON / OpenAPI stub — done
-- [x] CI/CD pipeline (GitHub Actions) — done
-- [x] Production packaging (.vscodeignore, CHANGELOG, LICENSE) — done
+- [x] Cross-file mount prefix resolution (Express, Flask, FastAPI) - done
+- [x] Same-file `app.use()` / `url_prefix` / `include_router` prefix resolution - done
+- [x] NestJS decorator support (`@Get()`, `@Post()`, `@Controller()`) - done
+- [x] FastAPI support (`@app.get()`, `@app.post()`) - done
+- [x] Go support (Gin, Echo, Chi, Fiber, net/http) - done
+- [x] Route deduplication - done
+- [x] Keyboard shortcuts and context menus - done
+- [x] Export routes to JSON / OpenAPI stub - done
+- [x] CI/CD pipeline (GitHub Actions) - done
+- [x] Production packaging (.vscodeignore, CHANGELOG, LICENSE) - done
 - [ ] Publish to VS Code Marketplace
 
 ---

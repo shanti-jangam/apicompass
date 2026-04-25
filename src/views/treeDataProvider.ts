@@ -1,9 +1,9 @@
-import * as vscode from 'vscode';
 import * as path from 'path';
+import * as vscode from 'vscode';
 import { Route } from '../models/route';
 import { RouteManager } from '../services/routeManager';
-import { RouteTreeItem } from './treeItem';
 import { Config } from '../utils/config';
+import { RouteTreeItem } from './treeItem';
 
 /**
  * Provides data for the APICompass tree view in the VS Code sidebar.
@@ -11,7 +11,7 @@ import { Config } from '../utils/config';
  * Implements vscode.TreeDataProvider to render routes as a tree.
  * Supports grouping by file, HTTP method, or framework.
  *
- * Design pattern: Observer — listens to RouteManager's onRoutesChanged event
+ * Design pattern: Observer - listens to RouteManager's onRoutesChanged event
  * and refreshes the tree automatically.
  */
 export class RouteTreeDataProvider implements vscode.TreeDataProvider<RouteTreeItem> {
@@ -50,7 +50,7 @@ export class RouteTreeDataProvider implements vscode.TreeDataProvider<RouteTreeI
    */
   getChildren(element?: RouteTreeItem): RouteTreeItem[] {
     if (!element) {
-      // Root level — return groups
+      // Root level - return groups
       return this.getRootItems();
     }
 

@@ -1,6 +1,6 @@
-import * as vscode from 'vscode';
 import * as path from 'path';
-import { Route, HttpMethod } from '../models/route';
+import * as vscode from 'vscode';
+import { HttpMethod, Route } from '../models/route';
 
 /**
  * Represents a single item in the APICompass tree view.
@@ -18,7 +18,7 @@ export class RouteTreeItem extends vscode.TreeItem {
     super(label, collapsibleState);
 
     if (route) {
-      // Leaf node — a single route
+      // Leaf node - a single route
       this.description = route.path;
       this.tooltip = `${route.method} ${route.path}\n${path.basename(route.filePath)}:${route.lineNumber}`;
       this.iconPath = this.getMethodIcon(route.method);

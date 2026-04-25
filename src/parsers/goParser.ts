@@ -1,6 +1,6 @@
-import { RouteParser } from './parser';
-import { HttpMethod, ParseResult, Route } from '../models/route';
 import * as path from 'path';
+import { HttpMethod, ParseResult, Route } from '../models/route';
+import { RouteParser } from './parser';
 
 /**
  * Parser for Golang HTTP route definitions.
@@ -48,7 +48,7 @@ export class GoParser extends RouteParser {
       // Gin, Echo, Fiber: .GET("/path", ...), .POST("/path", ...)
       this.parseMethodCalls(content, filePath, routes);
 
-      // Chi: .Get("/path", ...), .Post("/path", ...) — different casing
+      // Chi: .Get("/path", ...), .Post("/path", ...) - different casing
       this.parseChiMethodCalls(content, filePath, routes);
 
       // net/http: http.HandleFunc("/path", handler)

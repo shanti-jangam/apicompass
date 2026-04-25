@@ -9,7 +9,7 @@ import { ParseResult } from '../models/route';
  * concrete parser classes directly.
  *
  * Design pattern: Strategy
- * SOLID principle: Open/Closed — new frameworks can be added by creating a new
+ * SOLID principle: Open/Closed - new frameworks can be added by creating a new
  * subclass without modifying existing code.
  */
 export abstract class RouteParser {

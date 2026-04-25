@@ -13,22 +13,22 @@ export class UsersController {
   }
 
   @Post()
-  create(@Body() createUserDto: unknown) {
+  create(@Body() _createUserDto: unknown) {
     return { id: 1 };
   }
 
   @Put(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: unknown) {
+  update(@Param('id') id: string, @Body() _updateUserDto: unknown) {
     return { id };
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
+  remove(@Param('id') _id: string) {
     return;
   }
 
   @Patch(':id')
-  patch(@Param('id') id: string, @Body() patchDto: unknown) {
+  patch(@Param('id') _id: string, @Body() _patchDto: unknown) {
     return { id };
   }
 }

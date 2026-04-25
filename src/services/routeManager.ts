@@ -1,9 +1,11 @@
 import * as vscode from 'vscode';
-import { Route, ParseResult } from '../models/route';
+import * as import_path from 'path';
+import { Route, ParseResult, MountPrefix } from '../models/route';
 import { ParserFactory } from '../parsers/parserFactory';
 import { FileScanner } from './fileScanner';
 import { Config } from '../utils/config';
 import { Logger } from '../utils/logger';
+import { deduplicateRoutes } from '../utils/deduplicateRoutes';
 
 /**
  * Central service that coordinates route discovery across the workspace.
@@ -62,6 +64,9 @@ export class RouteManager {
         }
       },
     );
+
+    // Second pass: apply cross-file mount prefixes (Express, Flask, FastAPI)
+    await this.applyCrossFileMountPrefixes(filePaths);
 
     const elapsed = Date.now() - startTime;
     const totalRoutes = this.getAllRoutes().length;
@@ -157,6 +162,158 @@ export class RouteManager {
   }
 
   /**
+   * Scans all files for cross-file mount prefix patterns and prepends
+   * mount prefixes to routes from the referenced router/blueprint files.
+   *
+   * Supports:
+   *   Express:  app.use('/prefix', require('./router'))
+   *   Flask:    app.register_blueprint(bp, url_prefix='/prefix')
+   *   FastAPI:  app.include_router(router, prefix='/prefix')
+   */
+  private async applyCrossFileMountPrefixes(filePaths: string[]): Promise<void> {
+    type Extractor = { extractMountPrefixes(filePath: string, content: string): MountPrefix[] };
+    const extractors: Extractor[] = [];
+
+    for (const fw of ['express', 'flask', 'fastapi'] as const) {
+      const parser = this.parserFactory.getParser(fw);
+      if (parser && 'extractMountPrefixes' in parser) {
+        extractors.push(parser as unknown as Extractor);
+      }
+    }
+
+    if (extractors.length === 0) {
+      return;
+    }
+
+    // Build a comprehensive set of files to scan for mount registrations.
+    // The scanner filePaths may miss entry-point files (e.g. main.py, app.py)
+    // that contain include_router/register_blueprint/app.use() but no routes.
+    const allFilesToScan = new Set(filePaths);
+    const workspaceFolders = vscode.workspace.workspaceFolders;
+    if (workspaceFolders) {
+      for (const folder of workspaceFolders) {
+        const pattern = new vscode.RelativePattern(folder, '**/*.{js,ts,mjs,cjs,py,go}');
+        const uris = await vscode.workspace.findFiles(pattern, undefined, 500);
+        for (const uri of uris) {
+          allFilesToScan.add(uri.fsPath);
+        }
+      }
+    }
+
+    const allMountPrefixes: MountPrefix[] = [];
+    const fileContents = new Map<string, string>();
+
+    for (const filePath of allFilesToScan) {
+      try {
+        const content = await this.fileScanner.readFile(filePath);
+        fileContents.set(filePath, content);
+        for (const extractor of extractors) {
+          const mounts = extractor.extractMountPrefixes(filePath, content);
+          allMountPrefixes.push(...mounts);
+        }
+      } catch {
+        // skip unreadable files
+      }
+    }
+
+    this.logger.info(`Cross-file: found ${allMountPrefixes.length} mount prefixes from ${allFilesToScan.size} files`);
+
+    if (allMountPrefixes.length === 0) {
+      return;
+    }
+
+    // Strategy 1: File-path matching (Express require/import resolution)
+    const filePathPrefixMap = new Map<string, string>();
+    for (const mount of allMountPrefixes) {
+      if (mount.resolvedFilePath) {
+        const base = mount.resolvedFilePath;
+        const candidates = [
+          base, base + '.js', base + '.ts', base + '.mjs', base + '.cjs',
+          base + '.py', base + '/index.js', base + '/index.ts', base + '/__init__.py',
+        ];
+        for (const candidate of candidates) {
+          const normalized = candidate.replace(/\\/g, '/').toLowerCase();
+          filePathPrefixMap.set(normalized, mount.prefix);
+        }
+      }
+    }
+
+    // Strategy 2: Variable-name matching (Flask/FastAPI)
+    const varNameMounts = allMountPrefixes.filter(m => m.variableName);
+
+    const varFilePrefixMap = new Map<string, string>();
+    if (varNameMounts.length > 0) {
+      for (const [filePath, content] of fileContents.entries()) {
+        // Skip entry files that contain mount registration calls
+        const isMountFile = /\.(?:register_blueprint|include_router)\s*\(/.test(content);
+        if (isMountFile) {
+          continue;
+        }
+
+        const fileBaseName = import_path.basename(filePath).replace(/\.\w+$/, '').toLowerCase();
+
+        for (const mount of varNameMounts) {
+          const varName = mount.variableName!;
+          const dotIdx = varName.indexOf('.');
+
+          if (dotIdx > 0) {
+            // Dotted reference like "users.router" -- all router files use
+            // the same generic identifier (e.g. "router"), so we match by
+            // the module name ("users") against the file's basename
+            const moduleName = varName.substring(0, dotIdx).toLowerCase();
+            if (fileBaseName === moduleName) {
+              varFilePrefixMap.set(filePath, mount.prefix);
+            }
+          } else {
+            // Direct variable like "users_bp" -- match against the decorator
+            // identifier used in route definitions within this file
+            const pattern = new RegExp(
+              `(?:@${this.escapeRegex(varName)}\\.|\\b${this.escapeRegex(varName)}\\.)` +
+              `(?:route|get|post|put|delete|patch|head|options|all|api_route)\\s*\\(`,
+            );
+            if (pattern.test(content)) {
+              varFilePrefixMap.set(filePath, mount.prefix);
+            }
+          }
+        }
+      }
+    }
+
+    // Apply file-path-based prefixes (Express)
+    for (const [filePath, routes] of this.routes.entries()) {
+      const normalizedFilePath = filePath.replace(/\\/g, '/').toLowerCase();
+      const prefix = filePathPrefixMap.get(normalizedFilePath);
+      if (prefix) {
+        this.applyPrefixToRoutes(routes, prefix);
+      }
+    }
+
+    // Apply variable-name-based prefixes (Flask/FastAPI)
+    for (const [filePath, routes] of this.routes.entries()) {
+      const prefix = varFilePrefixMap.get(filePath);
+      if (prefix) {
+        this.applyPrefixToRoutes(routes, prefix);
+      }
+    }
+  }
+
+  private applyPrefixToRoutes(routes: Route[], prefix: string): void {
+    for (const route of routes) {
+      if (!route.path.startsWith(prefix)) {
+        const normalizedPrefix = prefix.endsWith('/') ? prefix.slice(0, -1) : prefix;
+        const normalizedRoute = route.path.startsWith('/') ? route.path : '/' + route.path;
+        route.path = normalizedRoute === '/'
+          ? (normalizedPrefix || '/')
+          : normalizedPrefix + normalizedRoute;
+      }
+    }
+  }
+
+  private escapeRegex(str: string): string {
+    return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  }
+
+  /**
    * Parses a single file and stores the results.
    */
   private async parseFile(filePath: string): Promise<void> {
@@ -176,8 +333,10 @@ export class RouteManager {
         }
       }
 
-      if (fileRoutes.length > 0) {
-        this.routes.set(filePath, fileRoutes);
+      const dedupedRoutes = deduplicateRoutes(fileRoutes);
+
+      if (dedupedRoutes.length > 0) {
+        this.routes.set(filePath, dedupedRoutes);
       } else {
         this.routes.delete(filePath);
       }

@@ -1,5 +1,5 @@
 import { RouteParser } from './parser';
-import { HttpMethod, ParseResult, Route } from '../models/route';
+import { HttpMethod, MountPrefix, ParseResult, Route } from '../models/route';
 import * as path from 'path';
 
 /**
@@ -47,6 +47,9 @@ export class ExpressParser extends RouteParser {
 
       // Pattern 2: app.route('/path').get(...).post(...)
       this.parseChainedRoutes(content, filePath, routes);
+
+      // Pattern 3: resolve app.use('/prefix', router) mount paths
+      this.applyMountPrefixes(content, routes);
     } catch (err) {
       errors.push(`Error parsing ${filePath}: ${err instanceof Error ? err.message : String(err)}`);
     }
@@ -85,6 +88,140 @@ export class ExpressParser extends RouteParser {
     const before = content.slice(0, index);
     const newlineCount = (before.match(/\n/g) || []).length;
     return newlineCount + 1;
+  }
+
+  /**
+   * Detects app.use('/prefix', variableName) patterns and prepends the prefix
+   * to routes whose identifier matches. Only applies to routes defined on the
+   * same router variable, NOT to routes defined directly on app.
+   */
+  private applyMountPrefixes(content: string, routes: Route[]): void {
+    const usePattern = /\b(\w+)\.use\s*\(\s*['"](\/[^'"]*)['"]\s*,\s*(\w+)/g;
+
+    const mounts: { appVar: string; prefix: string; routerVar: string }[] = [];
+    let m: RegExpExecArray | null;
+    while ((m = usePattern.exec(content)) !== null) {
+      mounts.push({ appVar: m[1], prefix: m[2], routerVar: m[3] });
+    }
+
+    if (mounts.length === 0) {
+      return;
+    }
+
+    // Identify the app variable (the one calling .use)
+    const appVars = new Set(mounts.map(mount => mount.appVar));
+
+    // Build a set of router variables that are mounted
+    const mountedRouterVars = new Set(mounts.map(mount => mount.routerVar));
+
+    // Build variable -> prefix map
+    const prefixMap = new Map<string, string>();
+    for (const mount of mounts) {
+      prefixMap.set(mount.routerVar, mount.prefix);
+    }
+
+    // Detect which variables define routes inline using express.Router()
+    const routerDeclPattern = /\b(?:const|let|var)\s+(\w+)\s*=\s*express\.Router\s*\(/g;
+    const declaredRouterVars = new Set<string>();
+    let dr: RegExpExecArray | null;
+    while ((dr = routerDeclPattern.exec(content)) !== null) {
+      declaredRouterVars.add(dr[1]);
+    }
+
+    // Parse each route definition to find which variable it was called on
+    // e.g. "router.get('/path'..." -> variable is "router"
+    const routeDefPattern = /\b(\w+)\.(get|post|put|delete|patch|head|options|all)\s*\(\s*['"](\/[^'"]*)['"]/gi;
+    const routeVarMap = new Map<string, string>(); // "method|path|line" -> variable
+    let rv: RegExpExecArray | null;
+    while ((rv = routeDefPattern.exec(content)) !== null) {
+      const variable = rv[1];
+      const method = rv[2].toUpperCase();
+      const routePath = rv[3];
+      const lineNumber = this.getLineNumberAt(content, rv.index);
+      const key = `${method}|${routePath}|${lineNumber}`;
+      routeVarMap.set(key, variable);
+    }
+
+    // Only apply prefix to routes whose defining variable is a mounted router,
+    // not the app variable itself
+    for (const route of routes) {
+      const key = `${route.method}|${route.path}|${route.lineNumber}`;
+      const variable = routeVarMap.get(key);
+
+      if (!variable) {
+        continue;
+      }
+
+      // Skip routes defined directly on the app variable
+      if (appVars.has(variable)) {
+        continue;
+      }
+
+      // Apply prefix if this variable matches a mounted router directly
+      if (prefixMap.has(variable)) {
+        route.path = this.joinPaths(prefixMap.get(variable)!, route.path);
+        continue;
+      }
+
+      // For single-file routers: if this variable is a declared Router() and
+      // there's exactly one mount for it, apply the prefix
+      if (declaredRouterVars.has(variable) && mounts.length === 1) {
+        route.path = this.joinPaths(mounts[0].prefix, route.path);
+      }
+    }
+  }
+
+  /**
+   * Extracts cross-file mount prefix mappings from an entry file.
+   * Matches patterns like:
+   *   const usersRouter = require('./routes/users')
+   *   app.use('/api/users', usersRouter)
+   * Returns resolved file paths paired with their mount prefix.
+   */
+  extractMountPrefixes(filePath: string, content: string): MountPrefix[] {
+    const results: MountPrefix[] = [];
+    const dir = path.dirname(filePath);
+
+    // Build variable -> require path map
+    // Matches: const/let/var identifier = require('...')
+    const requireMap = new Map<string, string>();
+    const requirePattern = /\b(?:const|let|var)\s+(\w+)\s*=\s*require\s*\(\s*['"]([^'"]+)['"]\s*\)/g;
+    let rm: RegExpExecArray | null;
+    while ((rm = requirePattern.exec(content)) !== null) {
+      requireMap.set(rm[1], rm[2]);
+    }
+
+    // Also match: import identifier from '...'
+    const importPattern = /\bimport\s+(\w+)\s+from\s+['"]([^'"]+)['"]/g;
+    let im: RegExpExecArray | null;
+    while ((im = importPattern.exec(content)) !== null) {
+      requireMap.set(im[1], im[2]);
+    }
+
+    // Find app.use('/prefix', variableName) calls
+    const usePattern = /\b\w+\.use\s*\(\s*['"](\/[^'"]*)['"]\s*,\s*(\w+)/g;
+    let um: RegExpExecArray | null;
+    while ((um = usePattern.exec(content)) !== null) {
+      const prefix = um[1];
+      const varName = um[2];
+      const requirePath = requireMap.get(varName);
+
+      if (requirePath && (requirePath.startsWith('./') || requirePath.startsWith('../'))) {
+        const resolved = path.resolve(dir, requirePath);
+        results.push({ prefix, resolvedFilePath: resolved });
+      }
+    }
+
+    return results;
+  }
+
+  private joinPaths(prefix: string, routePath: string): string {
+    const normalizedPrefix = prefix.endsWith('/') ? prefix.slice(0, -1) : prefix;
+    const normalizedRoute = routePath.startsWith('/') ? routePath : '/' + routePath;
+    if (normalizedRoute === '/') {
+      return normalizedPrefix || '/';
+    }
+    return normalizedPrefix + normalizedRoute;
   }
 
   /**

@@ -1,5 +1,5 @@
 import { RouteParser } from './parser';
-import { HttpMethod, ParseResult, Route } from '../models/route';
+import { HttpMethod, MountPrefix, ParseResult, Route } from '../models/route';
 import * as path from 'path';
 
 /**
@@ -146,5 +146,39 @@ export class FastApiParser extends RouteParser {
     const before = content.slice(0, index);
     const newlineCount = (before.match(/\n/g) || []).length;
     return newlineCount + 1;
+  }
+
+  /**
+   * Extracts cross-file mount prefix mappings from an entry file.
+   * Uses variable-name matching: the variable/reference passed to include_router()
+   * is matched against the decorator identifier in route files.
+   *
+   * e.g. app.include_router(users.router, prefix='/api/users')
+   *      -> in users.py: @router.get(...) routes get /api/users prefix
+   *
+   * e.g. app.include_router(users_router, prefix='/api/users')
+   *      -> in some file: @users_router.get(...) routes get /api/users prefix
+   */
+  extractMountPrefixes(_filePath: string, content: string): MountPrefix[] {
+    const results: MountPrefix[] = [];
+
+    // Find app.include_router(ref, prefix='/prefix')
+    const includePattern =
+      /\b\w+\.include_router\s*\(\s*([\w.]+)[^)]*\)/g;
+    let rm: RegExpExecArray | null;
+    while ((rm = includePattern.exec(content)) !== null) {
+      const routerRef = rm[1];
+      const callBody = rm[0];
+
+      const prefixMatch = /prefix\s*=\s*['"]([^'"]*)['"]/. exec(callBody);
+      if (!prefixMatch) {
+        continue;
+      }
+      const prefix = prefixMatch[1];
+
+      results.push({ prefix, variableName: routerRef });
+    }
+
+    return results;
   }
 }

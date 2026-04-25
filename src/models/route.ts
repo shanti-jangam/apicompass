@@ -47,3 +47,18 @@ export interface ParseResult {
   /** Any errors encountered during parsing */
   errors: string[];
 }
+
+/**
+ * Represents a mount prefix extracted from an entry file.
+ * e.g. app.use('/api/users', usersRouter) where usersRouter = require('./routes/users')
+ */
+export interface MountPrefix {
+  /** The prefix path from app.use(), e.g. '/api/users' */
+  prefix: string;
+
+  /** Resolved absolute path of the mounted router file (for JS/TS require/import resolution) */
+  resolvedFilePath?: string;
+
+  /** Variable name used to reference the router/blueprint (for Python variable-name matching) */
+  variableName?: string;
+}

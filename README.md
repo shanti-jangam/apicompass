@@ -37,7 +37,12 @@ APICompass scans the workspace using static analysis, extracts every route defin
 | **Search**                | Quick-pick search across all discovered routes by path, method, or file name     |
 | **Colour-coded icons**    | GET (green), POST (blue), PUT (orange), DELETE (red), PATCH (yellow)             |
 | **Configurable**          | Include/exclude folders, choose frameworks, pick grouping style                  |
-| **Lightweight**           | ~22 KB bundled; async scanning keeps the editor responsive                       |
+| **Prefix resolution**     | Cross-file mount prefix resolution for Express, Flask, and FastAPI               |
+| **Route deduplication**   | Duplicate routes from multiple parsers are automatically removed                 |
+| **Export**                | Export all routes to JSON or OpenAPI 3.0 (YAML/JSON)                             |
+| **Keyboard shortcuts**    | `Ctrl+Shift+A R` to refresh, `Ctrl+Shift+A S` to search                          |
+| **Context menus**         | Right-click a route to copy its path or a cURL command                           |
+| **Lightweight**           | ~35 KB bundled; async scanning keeps the editor responsive                       |
 
 ---
 
@@ -51,6 +56,11 @@ app.post('/users', handler);
 router.put('/users/:id', handler);
 app.delete('/users/:id', handler);
 app.route('/items').get(listItems).post(createItem);
+app.use('/api', router); // same-file mount prefix auto-resolved
+
+// Cross-file: prefix applied to routes in imported router files
+const usersRouter = require('./routes/users');
+app.use('/api/users', usersRouter); // routes in users.js get /api/users prefix
 ```
 
 ### NestJS (TypeScript / JavaScript)
@@ -82,8 +92,13 @@ def get_users(): ...
 @app.route('/users', methods=['POST'])
 def create_user(): ...
 
-@bp.route('/items')          # Blueprint routes
+bp = Blueprint('api', __name__, url_prefix='/api')
+@bp.route('/items')          # resolves to /api/items
 def get_items(): ...
+
+# Cross-file: prefix applied to routes in imported blueprint files
+from .users import users_bp
+app.register_blueprint(users_bp, url_prefix='/api/users')
 ```
 
 ### Django (Python)
@@ -110,6 +125,10 @@ async def get_user(user_id: int): ...
 
 @app.api_route("/custom", methods=["GET", "POST"])
 async def custom(): ...
+
+# Cross-file: prefix applied to routes in imported router files
+from .routers.users import router as users_router
+app.include_router(users_router, prefix="/api/users")
 ```
 
 ### Go (Gin, Echo, Chi, Fiber, net/http)
@@ -187,11 +206,15 @@ Open **Settings** (`Ctrl+,`) and search for `apicompass`.
 
 ## Commands
 
-| Command                         | Description                                                           |
-| ------------------------------- | --------------------------------------------------------------------- |
-| `APICompass: Refresh Routes`    | Re-scan the entire workspace                                          |
-| `APICompass: Search Routes`     | Open a quick-pick search box to find routes                           |
-| `APICompass: Navigate to Route` | Jump to a route's definition (also triggered by clicking a tree item) |
+| Command                                | Shortcut         | Description                                                           |
+| -------------------------------------- | ---------------- | --------------------------------------------------------------------- |
+| `APICompass: Refresh Routes`           | `Ctrl+Shift+A R` | Re-scan the entire workspace                                          |
+| `APICompass: Search Routes`            | `Ctrl+Shift+A S` | Open a quick-pick search box to find routes                           |
+| `APICompass: Navigate to Route`        |                  | Jump to a route's definition (also triggered by clicking a tree item) |
+| `APICompass: Copy Route Path`          | Right-click menu | Copy `METHOD /path` to clipboard                                      |
+| `APICompass: Copy as cURL`             | Right-click menu | Copy a cURL command to clipboard                                      |
+| `APICompass: Export Routes as JSON`    | Tree view header | Export all routes to a JSON file                                      |
+| `APICompass: Export Routes as OpenAPI` | Tree view header | Export all routes as an OpenAPI 3.0 spec (YAML or JSON)               |
 
 ---
 
@@ -211,13 +234,15 @@ src/
 │   └── nestJsParser.ts         NestJS controller route extraction
 ├── services/
 │   ├── routeManager.ts         Orchestrates scanning, caching, and events
+│   ├── routeExporter.ts        Export to JSON and OpenAPI 3.0
 │   └── fileScanner.ts          Workspace file discovery
 ├── views/
 │   ├── treeDataProvider.ts     VS Code TreeDataProvider (grouped views)
 │   └── treeItem.ts             Individual tree items with icons
 ├── utils/
 │   ├── logger.ts               OutputChannel-based logger (Singleton)
-│   └── config.ts               Reads VS Code settings (Singleton)
+│   ├── config.ts               Reads VS Code settings (Singleton)
+│   └── deduplicateRoutes.ts    Route deduplication utility
 └── extension.ts                Entry point — wires everything together
 ```
 
@@ -249,23 +274,21 @@ Current coverage:
 | Statements  | 97%+  |
 | Functions   | 100%  |
 | Lines       | 97%+  |
-| Test suites | 7     |
-| Tests       | 88    |
+| Test suites | 9     |
+| Tests       | 129   |
 
-Test fixtures for Express, NestJS, Flask, Django, FastAPI, and Go are in `test/fixtures/`.
-
----
+## Test fixtures for Express, NestJS, Flask, Django, FastAPI, and Go are in `test/fixtures/`.
 
 ## Roadmap
 
-- [ ] Combine `app.use()` mount prefixes with router paths (Express)
-- [ ] Combine `url_prefix` from Blueprints with route paths (Flask)
+- [x] Cross-file mount prefix resolution (Express, Flask, FastAPI) — done
+- [x] Same-file `app.use()` / `url_prefix` / `include_router` prefix resolution — done
 - [x] NestJS decorator support (`@Get()`, `@Post()`, `@Controller()`) — done
 - [x] FastAPI support (`@app.get()`, `@app.post()`) — done
 - [x] Go support (Gin, Echo, Chi, Fiber, net/http) — done
-- [ ] Route deduplication
-- [ ] Keyboard shortcuts and context menus
-- [ ] Export routes to JSON / OpenAPI stub
+- [x] Route deduplication — done
+- [x] Keyboard shortcuts and context menus — done
+- [x] Export routes to JSON / OpenAPI stub — done
 - [ ] Publish to VS Code Marketplace
 
 ---

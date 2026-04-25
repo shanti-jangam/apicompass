@@ -64,6 +64,38 @@
         "command": "apicompass.searchRoutes",
         "title": "APICompass: Search Routes",
         "icon": "$(search)"
+      },
+      {
+        "command": "apicompass.copyRoutePath",
+        "title": "APICompass: Copy Route Path"
+      },
+      {
+        "command": "apicompass.copyAsCurl",
+        "title": "APICompass: Copy as cURL"
+      },
+      {
+        "command": "apicompass.exportJson",
+        "title": "APICompass: Export Routes as JSON",
+        "icon": "$(json)"
+      },
+      {
+        "command": "apicompass.exportOpenApi",
+        "title": "APICompass: Export Routes as OpenAPI",
+        "icon": "$(file-code)"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "apicompass.refresh",
+        "key": "ctrl+shift+a r",
+        "mac": "cmd+shift+a r",
+        "when": "workspaceFolderCount > 0"
+      },
+      {
+        "command": "apicompass.searchRoutes",
+        "key": "ctrl+shift+a s",
+        "mac": "cmd+shift+a s",
+        "when": "workspaceFolderCount > 0"
       }
     ],
     "menus": {
@@ -77,6 +109,28 @@
           "command": "apicompass.searchRoutes",
           "when": "view == apicompassRoutesView",
           "group": "navigation"
+        },
+        {
+          "command": "apicompass.exportJson",
+          "when": "view == apicompassRoutesView",
+          "group": "export"
+        },
+        {
+          "command": "apicompass.exportOpenApi",
+          "when": "view == apicompassRoutesView",
+          "group": "export"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "apicompass.copyRoutePath",
+          "when": "view == apicompassRoutesView && viewItem == route",
+          "group": "clipboard"
+        },
+        {
+          "command": "apicompass.copyAsCurl",
+          "when": "view == apicompassRoutesView && viewItem == route",
+          "group": "clipboard"
         }
       ]
     },

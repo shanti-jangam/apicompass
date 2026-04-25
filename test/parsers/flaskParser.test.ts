@@ -64,7 +64,7 @@ describe('FlaskParser', () => {
       expect(result.routes[0].method).toBe('POST');
     });
 
-    it('should parse Blueprint routes', () => {
+    it('should parse Blueprint routes and prepend url_prefix', () => {
       const content = [
         `from flask import Blueprint`,
         `bp = Blueprint('api', __name__, url_prefix='/api')`,
@@ -79,7 +79,7 @@ describe('FlaskParser', () => {
       expect(result.routes).toHaveLength(1);
       expect(result.routes[0]).toMatchObject({
         method: 'GET',
-        path: '/items',
+        path: '/api/items',
         lineNumber: 4,
       });
     });
@@ -127,6 +127,131 @@ describe('FlaskParser', () => {
       const result = parser.parse('/project/utils.py', content);
 
       expect(result.routes).toHaveLength(0);
+    });
+  });
+
+  describe('Blueprint url_prefix resolution', () => {
+    it('should not modify routes for Blueprints without url_prefix', () => {
+      const content = [
+        `from flask import Blueprint`,
+        `bp = Blueprint('main', __name__)`,
+        ``,
+        `@bp.route('/health')`,
+        `def health(): pass`,
+      ].join('\n');
+
+      const result = parser.parse('/project/main.py', content);
+
+      expect(result.routes).toHaveLength(1);
+      expect(result.routes[0].path).toBe('/health');
+    });
+
+    it('should handle multiple Blueprints in one file', () => {
+      const content = [
+        `from flask import Blueprint`,
+        `users_bp = Blueprint('users', __name__, url_prefix='/users')`,
+        `items_bp = Blueprint('items', __name__, url_prefix='/items')`,
+        ``,
+        `@users_bp.route('/list')`,
+        `def list_users(): pass`,
+        ``,
+        `@items_bp.route('/list')`,
+        `def list_items(): pass`,
+      ].join('\n');
+
+      const result = parser.parse('/project/app.py', content);
+
+      expect(result.routes).toHaveLength(2);
+      expect(result.routes[0].path).toBe('/users/list');
+      expect(result.routes[1].path).toBe('/items/list');
+    });
+
+    it('should handle Blueprint root route with prefix', () => {
+      const content = [
+        `from flask import Blueprint`,
+        `api = Blueprint('api', __name__, url_prefix='/api/v1')`,
+        ``,
+        `@api.route('/')`,
+        `def index(): pass`,
+      ].join('\n');
+
+      const result = parser.parse('/project/api.py', content);
+
+      expect(result.routes).toHaveLength(1);
+      expect(result.routes[0].path).toBe('/api/v1');
+    });
+  });
+
+  describe('extractMountPrefixes (cross-file)', () => {
+    it('should extract variable names and prefixes from register_blueprint', () => {
+      const content = [
+        `from flask import Flask`,
+        `from .users import users_bp`,
+        `from .products import products_bp`,
+        ``,
+        `app = Flask(__name__)`,
+        `app.register_blueprint(users_bp, url_prefix='/api/users')`,
+        `app.register_blueprint(products_bp, url_prefix='/api/products')`,
+      ].join('\n');
+
+      const mounts = parser.extractMountPrefixes('/project/app.py', content);
+
+      expect(mounts).toHaveLength(2);
+      expect(mounts[0]).toMatchObject({ prefix: '/api/users', variableName: 'users_bp' });
+      expect(mounts[1]).toMatchObject({ prefix: '/api/products', variableName: 'products_bp' });
+    });
+
+    it('should ignore register_blueprint without url_prefix', () => {
+      const content = [
+        `from .main import main_bp`,
+        `app.register_blueprint(main_bp)`,
+      ].join('\n');
+
+      const mounts = parser.extractMountPrefixes('/project/app.py', content);
+
+      expect(mounts).toHaveLength(0);
+    });
+
+    it('should return empty when no register_blueprint calls', () => {
+      const content = [
+        `from flask import Flask`,
+        `app = Flask(__name__)`,
+        `@app.route('/health')`,
+        `def health(): pass`,
+      ].join('\n');
+
+      const mounts = parser.extractMountPrefixes('/project/app.py', content);
+
+      expect(mounts).toHaveLength(0);
+    });
+
+    it('should handle module-level dotted access (users.bp)', () => {
+      const content = [
+        `from flask import Flask`,
+        `from blueprints import users, products`,
+        ``,
+        `app = Flask(__name__)`,
+        `app.register_blueprint(users.bp, url_prefix='/api/users')`,
+        `app.register_blueprint(products.bp, url_prefix='/api/products')`,
+      ].join('\n');
+
+      const mounts = parser.extractMountPrefixes('/project/app.py', content);
+
+      expect(mounts).toHaveLength(2);
+      expect(mounts[0]).toMatchObject({ prefix: '/api/users', variableName: 'users.bp' });
+      expect(mounts[1]).toMatchObject({ prefix: '/api/products', variableName: 'products.bp' });
+    });
+
+    it('should handle url_prefix in any kwarg position', () => {
+      const content = [
+        `from .auth import auth_bp`,
+        `app.register_blueprint(auth_bp, subdomain='auth', url_prefix='/auth')`,
+      ].join('\n');
+
+      const mounts = parser.extractMountPrefixes('/project/app.py', content);
+
+      expect(mounts).toHaveLength(1);
+      expect(mounts[0]).toMatchObject({ prefix: '/auth', variableName: 'auth_bp' });
     });
   });
 });

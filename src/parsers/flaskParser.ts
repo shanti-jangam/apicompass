@@ -1,5 +1,5 @@
 import { RouteParser } from './parser';
-import { HttpMethod, ParseResult, Route } from '../models/route';
+import { HttpMethod, MountPrefix, ParseResult, Route } from '../models/route';
 import * as path from 'path';
 
 /**
@@ -38,7 +38,8 @@ export class FlaskParser extends RouteParser {
     const lines = content.split('\n');
 
     try {
-      this.parseRouteDecorators(lines, filePath, routes);
+      const blueprintPrefixes = this.parseBlueprintPrefixes(content);
+      this.parseRouteDecorators(lines, filePath, routes, blueprintPrefixes);
     } catch (err) {
       errors.push(`Error parsing ${filePath}: ${err instanceof Error ? err.message : String(err)}`);
     }
@@ -47,22 +48,47 @@ export class FlaskParser extends RouteParser {
   }
 
   /**
-   * Parses @app.route('/path') and @blueprint.route('/path') decorators.
+   * Extracts Blueprint variable -> url_prefix mappings from the file.
+   * e.g. bp = Blueprint('api', __name__, url_prefix='/api') -> { bp: '/api' }
    */
-  private parseRouteDecorators(lines: string[], filePath: string, routes: Route[]): void {
-    // Matches: @identifier.route('/path'  or  @identifier.route("/path"
-    // Optionally followed by methods=['GET', 'POST']
+  private parseBlueprintPrefixes(content: string): Map<string, string> {
+    const prefixMap = new Map<string, string>();
+    const blueprintPattern =
+      /(\w+)\s*=\s*Blueprint\s*\([^)]*url_prefix\s*=\s*['"]([^'"]*)['"]/g;
+
+    let match: RegExpExecArray | null;
+    while ((match = blueprintPattern.exec(content)) !== null) {
+      prefixMap.set(match[1], match[2]);
+    }
+    return prefixMap;
+  }
+
+  /**
+   * Parses @app.route('/path') and @blueprint.route('/path') decorators.
+   * Prepends Blueprint url_prefix when the decorator identifier matches.
+   */
+  private parseRouteDecorators(
+    lines: string[],
+    filePath: string,
+    routes: Route[],
+    blueprintPrefixes: Map<string, string>,
+  ): void {
     const routeDecoratorPattern = /@(\w+)\.route\s*\(\s*['"](\/[^'"]*)['"]/;
-    const methodsPattern = /methods\s*=\s*\[([^\]]+)\]/;
 
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i].trim();
       const routeMatch = routeDecoratorPattern.exec(line);
 
       if (routeMatch) {
-        const routePath = routeMatch[2];
+        const identifier = routeMatch[1];
+        let routePath = routeMatch[2];
 
-        // Extract HTTP methods if specified
+        // Prepend Blueprint url_prefix if this identifier has one
+        const prefix = blueprintPrefixes.get(identifier);
+        if (prefix) {
+          routePath = this.joinPaths(prefix, routePath);
+        }
+
         const methods = this.extractMethods(line, lines, i);
 
         for (const method of methods) {
@@ -76,6 +102,15 @@ export class FlaskParser extends RouteParser {
         }
       }
     }
+  }
+
+  private joinPaths(prefix: string, routePath: string): string {
+    const normalizedPrefix = prefix.endsWith('/') ? prefix.slice(0, -1) : prefix;
+    const normalizedRoute = routePath.startsWith('/') ? routePath : '/' + routePath;
+    if (normalizedRoute === '/') {
+      return normalizedPrefix || '/';
+    }
+    return normalizedPrefix + normalizedRoute;
   }
 
   /**
@@ -121,5 +156,39 @@ export class FlaskParser extends RouteParser {
    */
   private isValidHttpMethod(method: string): method is HttpMethod {
     return ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS', 'ALL'].includes(method);
+  }
+
+  /**
+   * Extracts cross-file mount prefix mappings from an entry file.
+   * Uses variable-name matching: the variable passed to register_blueprint()
+   * is matched against the decorator identifier in route files.
+   *
+   * e.g. app.register_blueprint(users_bp, url_prefix='/api/users')
+   *      -> routes with @users_bp.route(...) get /api/users prefix
+   */
+  extractMountPrefixes(_filePath: string, content: string): MountPrefix[] {
+    const results: MountPrefix[] = [];
+
+    // Find app.register_blueprint(var, url_prefix='/prefix')
+    // or   app.register_blueprint(module.attr, url_prefix='/prefix')
+    const registerPattern =
+      /\b\w+\.register_blueprint\s*\(\s*([\w.]+)[^)]*\)/g;
+    let rm: RegExpExecArray | null;
+    while ((rm = registerPattern.exec(content)) !== null) {
+      const bpRef = rm[1];
+      const callBody = rm[0];
+
+      const prefixMatch = /url_prefix\s*=\s*['"]([^'"]*)['"]/. exec(callBody);
+      if (!prefixMatch) {
+        continue;
+      }
+      const prefix = prefixMatch[1];
+
+      // Use the full reference as the variable name to match
+      // e.g. "users_bp" or "users.bp" (we'll match the first part too)
+      results.push({ prefix, variableName: bpRef });
+    }
+
+    return results;
   }
 }

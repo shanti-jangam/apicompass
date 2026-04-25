@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import * as import_path from 'path';
+import * as nodePath from 'path';
 import { Route, ParseResult, MountPrefix } from '../models/route';
 import { ParserFactory } from '../parsers/parserFactory';
 import { FileScanner } from './fileScanner';
@@ -259,7 +259,7 @@ export class RouteManager {
           continue;
         }
 
-        const fileBaseName = import_path
+        const fileBaseName = nodePath
           .basename(filePath)
           .replace(/\.\w+$/, '')
           .toLowerCase();

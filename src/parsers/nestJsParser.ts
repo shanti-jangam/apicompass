@@ -117,7 +117,9 @@ export class NestJsParser extends RouteParser {
   }
 
   private normalizeControllerPath(path: string): string {
-    if (!path) return '/';
+    if (!path) {
+      return '/';
+    }
     let normalized = path.trim();
     if (!normalized.startsWith('/')) {
       normalized = '/' + normalized;

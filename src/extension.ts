@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { Route } from './models/route';
-import { RouteManager } from './services/routeManager';
 import { RouteExporter } from './services/routeExporter';
+import { RouteManager } from './services/routeManager';
 import { Logger } from './utils/logger';
 import { RouteTreeDataProvider } from './views/treeDataProvider';
 
@@ -119,6 +119,7 @@ export function activate(context: vscode.ExtensionContext): void {
     }
     const uri = await vscode.window.showSaveDialog({
       defaultUri: vscode.Uri.file('api-routes.json'),
+      // eslint-disable-next-line @typescript-eslint/naming-convention
       filters: { JSON: ['json'] },
     });
     if (uri) {
@@ -137,6 +138,7 @@ export function activate(context: vscode.ExtensionContext): void {
     }
     const uri = await vscode.window.showSaveDialog({
       defaultUri: vscode.Uri.file('openapi.yaml'),
+      // eslint-disable-next-line @typescript-eslint/naming-convention
       filters: { YAML: ['yaml', 'yml'], JSON: ['json'] },
     });
     if (uri) {

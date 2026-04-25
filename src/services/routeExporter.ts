@@ -43,9 +43,8 @@ export class RouteExporter {
         if (!paths[pathKey][method]) {
           paths[pathKey][method] = {
             summary: `${route.method} ${route.path}`,
-            responses: {
-              '200': { description: 'Successful response' },
-            },
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            responses: { '200': { description: 'Successful response' } },
           };
         }
       }
@@ -79,7 +78,7 @@ export class RouteExporter {
     }
 
     if (typeof obj === 'string') {
-      if (/[:{}\[\],&*?|>!%#@`'"]/.test(obj) || obj === '') {
+      if (/[:{},&*?|>!%#@`'"[\]]/.test(obj) || obj === '') {
         return `'${obj.replace(/'/g, "''")}'`;
       }
       return obj;

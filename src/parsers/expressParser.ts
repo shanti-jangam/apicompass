@@ -111,9 +111,6 @@ export class ExpressParser extends RouteParser {
     // Identify the app variable (the one calling .use)
     const appVars = new Set(mounts.map((mount) => mount.appVar));
 
-    // Build a set of router variables that are mounted
-    const mountedRouterVars = new Set(mounts.map((mount) => mount.routerVar));
-
     // Build variable -> prefix map
     const prefixMap = new Map<string, string>();
     for (const mount of mounts) {

@@ -132,7 +132,8 @@ export class RouteTreeDataProvider implements vscode.TreeDataProvider<RouteTreeI
     }
 
     return Array.from(groups.entries()).map(
-      ([filePath, count]) => new RouteTreeItem(filePath, vscode.TreeItemCollapsibleState.Collapsed),
+      ([filePath, _count]) =>
+        new RouteTreeItem(filePath, vscode.TreeItemCollapsibleState.Collapsed),
     );
   }
 
@@ -147,7 +148,7 @@ export class RouteTreeDataProvider implements vscode.TreeDataProvider<RouteTreeI
     }
 
     return Array.from(groups.entries()).map(
-      ([method, count]) => new RouteTreeItem(method, vscode.TreeItemCollapsibleState.Collapsed),
+      ([method, _count]) => new RouteTreeItem(method, vscode.TreeItemCollapsibleState.Collapsed),
     );
   }
 
@@ -162,7 +163,7 @@ export class RouteTreeDataProvider implements vscode.TreeDataProvider<RouteTreeI
     }
 
     return Array.from(groups.entries()).map(
-      ([framework, count]) =>
+      ([framework, _count]) =>
         new RouteTreeItem(framework, vscode.TreeItemCollapsibleState.Collapsed),
     );
   }

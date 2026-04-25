@@ -1,5 +1,5 @@
 import { RouteParser } from './parser';
-import { HttpMethod, ParseResult, Route } from '../models/route';
+import { ParseResult, Route } from '../models/route';
 import * as path from 'path';
 
 /**

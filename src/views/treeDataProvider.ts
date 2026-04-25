@@ -106,9 +106,7 @@ export class RouteTreeDataProvider implements vscode.TreeDataProvider<RouteTreeI
         break;
       case 'file':
       default:
-        filteredRoutes = routes.filter(
-          (r) => this.getRelativePath(r.filePath) === label,
-        );
+        filteredRoutes = routes.filter((r) => this.getRelativePath(r.filePath) === label);
         break;
     }
 
@@ -134,11 +132,7 @@ export class RouteTreeDataProvider implements vscode.TreeDataProvider<RouteTreeI
     }
 
     return Array.from(groups.entries()).map(
-      ([filePath, count]) =>
-        new RouteTreeItem(
-          filePath,
-          vscode.TreeItemCollapsibleState.Collapsed,
-        ),
+      ([filePath, count]) => new RouteTreeItem(filePath, vscode.TreeItemCollapsibleState.Collapsed),
     );
   }
 
@@ -153,11 +147,7 @@ export class RouteTreeDataProvider implements vscode.TreeDataProvider<RouteTreeI
     }
 
     return Array.from(groups.entries()).map(
-      ([method, count]) =>
-        new RouteTreeItem(
-          method,
-          vscode.TreeItemCollapsibleState.Collapsed,
-        ),
+      ([method, count]) => new RouteTreeItem(method, vscode.TreeItemCollapsibleState.Collapsed),
     );
   }
 
@@ -173,10 +163,7 @@ export class RouteTreeDataProvider implements vscode.TreeDataProvider<RouteTreeI
 
     return Array.from(groups.entries()).map(
       ([framework, count]) =>
-        new RouteTreeItem(
-          framework,
-          vscode.TreeItemCollapsibleState.Collapsed,
-        ),
+        new RouteTreeItem(framework, vscode.TreeItemCollapsibleState.Collapsed),
     );
   }
 

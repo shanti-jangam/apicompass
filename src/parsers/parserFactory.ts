@@ -19,7 +19,14 @@ export class ParserFactory {
   private parsers: Map<Framework, RouteParser> = new Map();
 
   constructor(enabledFrameworks?: Framework[]) {
-    const frameworks = enabledFrameworks ?? ['express', 'flask', 'django', 'fastapi', 'go', 'nestjs'];
+    const frameworks = enabledFrameworks ?? [
+      'express',
+      'flask',
+      'django',
+      'fastapi',
+      'go',
+      'nestjs',
+    ];
 
     if (frameworks.includes('express')) {
       this.parsers.set('express', new ExpressParser());

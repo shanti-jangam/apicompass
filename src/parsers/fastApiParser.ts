@@ -81,8 +81,7 @@ export class FastApiParser extends RouteParser {
    * Parses @app.api_route('/path', methods=['GET', 'POST']) decorators.
    */
   private parseApiRouteDecorators(content: string, filePath: string, routes: Route[]): void {
-    const apiRoutePattern =
-      /@\w+\.api_route\s*\(\s*['"]((?:[^'"\\]|\\.)*)['"]\s*[,)]/gi;
+    const apiRoutePattern = /@\w+\.api_route\s*\(\s*['"]((?:[^'"\\]|\\.)*)['"]\s*[,)]/gi;
 
     let match: RegExpExecArray | null;
     while ((match = apiRoutePattern.exec(content)) !== null) {
@@ -163,14 +162,13 @@ export class FastApiParser extends RouteParser {
     const results: MountPrefix[] = [];
 
     // Find app.include_router(ref, prefix='/prefix')
-    const includePattern =
-      /\b\w+\.include_router\s*\(\s*([\w.]+)[^)]*\)/g;
+    const includePattern = /\b\w+\.include_router\s*\(\s*([\w.]+)[^)]*\)/g;
     let rm: RegExpExecArray | null;
     while ((rm = includePattern.exec(content)) !== null) {
       const routerRef = rm[1];
       const callBody = rm[0];
 
-      const prefixMatch = /prefix\s*=\s*['"]([^'"]*)['"]/. exec(callBody);
+      const prefixMatch = /prefix\s*=\s*['"]([^'"]*)['"]/.exec(callBody);
       if (!prefixMatch) {
         continue;
       }

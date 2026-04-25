@@ -275,9 +275,11 @@ Current coverage:
 | Functions   | 100%  |
 | Lines       | 97%+  |
 | Test suites | 9     |
-| Tests       | 129   |
+| Tests       | 127   |
 
-## Test fixtures for Express, NestJS, Flask, Django, FastAPI, and Go are in `test/fixtures/`.
+Test fixtures for Express, NestJS, Flask, Django, FastAPI, and Go are in `test/fixtures/`.
+
+---
 
 ## Roadmap
 
@@ -289,7 +291,45 @@ Current coverage:
 - [x] Route deduplication — done
 - [x] Keyboard shortcuts and context menus — done
 - [x] Export routes to JSON / OpenAPI stub — done
+- [x] CI/CD pipeline (GitHub Actions) — done
+- [x] Production packaging (.vscodeignore, CHANGELOG, LICENSE) — done
 - [ ] Publish to VS Code Marketplace
+
+---
+
+## Contributing
+
+```bash
+# Install dependencies
+npm install
+
+# Lint source and test files
+npm run lint
+
+# Check formatting
+npm run format:check
+
+# Auto-fix formatting
+npm run format
+
+# Run tests
+npm test
+
+# Run tests with coverage
+npm run test:coverage
+
+# Build for production
+npm run compile
+
+# Package as .vsix
+npm run package
+```
+
+---
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).
 
 ---
 

@@ -34,9 +34,10 @@ export class RouteExporter {
         paths[pathKey] = {};
       }
 
-      const methods = route.method === 'ALL'
-        ? ['get', 'post', 'put', 'delete', 'patch']
-        : [route.method.toLowerCase()];
+      const methods =
+        route.method === 'ALL'
+          ? ['get', 'post', 'put', 'delete', 'patch']
+          : [route.method.toLowerCase()];
 
       for (const method of methods) {
         if (!paths[pathKey][method]) {

@@ -3,7 +3,21 @@
   "displayName": "APICompass",
   "description": "Automated API Route Visualizer for VS Code — discover, visualize, and navigate REST API routes across Express.js, NestJS, Flask, Django, FastAPI, and Go projects.",
   "version": "0.1.0",
-  "publisher": "surya-v",
+  "publisher": "shanti-jangam",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/shanti-jangam/apicompass"
+  },
+  "bugs": {
+    "url": "https://github.com/shanti-jangam/apicompass/issues"
+  },
+  "homepage": "https://github.com/shanti-jangam/apicompass#readme",
+  "icon": "resources/icons/apicompass-icon.png",
+  "galleryBanner": {
+    "color": "#1e293b",
+    "theme": "dark"
+  },
   "engines": {
     "vscode": "^1.85.0"
   },
@@ -183,7 +197,9 @@
     "vscode:prepublish": "npm run compile",
     "compile": "webpack --mode production",
     "watch": "webpack --mode development --watch",
-    "lint": "eslint src --ext ts",
+    "lint": "eslint src test --ext ts",
+    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
+    "format:check": "prettier --check \"src/**/*.ts\" \"test/**/*.ts\"",
     "test": "jest --config jest.config.js",
     "test:coverage": "jest --config jest.config.js --coverage",
     "package": "vsce package"
@@ -194,8 +210,10 @@
     "@types/vscode": "^1.85.0",
     "@typescript-eslint/eslint-plugin": "^7.0.0",
     "@typescript-eslint/parser": "^7.0.0",
+    "@vscode/vsce": "^3.2.0",
     "eslint": "^8.56.0",
     "jest": "^29.7.0",
+    "prettier": "^3.4.0",
     "ts-jest": "^29.1.2",
     "ts-loader": "^9.5.1",
     "typescript": "^5.3.3",

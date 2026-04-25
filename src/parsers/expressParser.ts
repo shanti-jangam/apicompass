@@ -109,10 +109,10 @@ export class ExpressParser extends RouteParser {
     }
 
     // Identify the app variable (the one calling .use)
-    const appVars = new Set(mounts.map(mount => mount.appVar));
+    const appVars = new Set(mounts.map((mount) => mount.appVar));
 
     // Build a set of router variables that are mounted
-    const mountedRouterVars = new Set(mounts.map(mount => mount.routerVar));
+    const mountedRouterVars = new Set(mounts.map((mount) => mount.routerVar));
 
     // Build variable -> prefix map
     const prefixMap = new Map<string, string>();
@@ -130,7 +130,8 @@ export class ExpressParser extends RouteParser {
 
     // Parse each route definition to find which variable it was called on
     // e.g. "router.get('/path'..." -> variable is "router"
-    const routeDefPattern = /\b(\w+)\.(get|post|put|delete|patch|head|options|all)\s*\(\s*['"](\/[^'"]*)['"]/gi;
+    const routeDefPattern =
+      /\b(\w+)\.(get|post|put|delete|patch|head|options|all)\s*\(\s*['"](\/[^'"]*)['"]/gi;
     const routeVarMap = new Map<string, string>(); // "method|path|line" -> variable
     let rv: RegExpExecArray | null;
     while ((rv = routeDefPattern.exec(content)) !== null) {
@@ -185,7 +186,8 @@ export class ExpressParser extends RouteParser {
     // Build variable -> require path map
     // Matches: const/let/var identifier = require('...')
     const requireMap = new Map<string, string>();
-    const requirePattern = /\b(?:const|let|var)\s+(\w+)\s*=\s*require\s*\(\s*['"]([^'"]+)['"]\s*\)/g;
+    const requirePattern =
+      /\b(?:const|let|var)\s+(\w+)\s*=\s*require\s*\(\s*['"]([^'"]+)['"]\s*\)/g;
     let rm: RegExpExecArray | null;
     while ((rm = requirePattern.exec(content)) !== null) {
       requireMap.set(rm[1], rm[2]);
@@ -239,7 +241,10 @@ export class ExpressParser extends RouteParser {
       const lineNumber = this.getLineNumberAt(content, routeMatch.index);
 
       // Look for chained methods in the rest of the content (same statement usually within ~200 chars)
-      const afterRoute = content.slice(routeMatch.index + routeMatch[0].length, routeMatch.index + 400);
+      const afterRoute = content.slice(
+        routeMatch.index + routeMatch[0].length,
+        routeMatch.index + 400,
+      );
       let methodMatch: RegExpExecArray | null;
       chainedMethodPattern.lastIndex = 0;
 

@@ -216,7 +216,9 @@ export class RouteManager {
       }
     }
 
-    this.logger.info(`Cross-file: found ${allMountPrefixes.length} mount prefixes from ${allFilesToScan.size} files`);
+    this.logger.info(
+      `Cross-file: found ${allMountPrefixes.length} mount prefixes from ${allFilesToScan.size} files`,
+    );
 
     if (allMountPrefixes.length === 0) {
       return;
@@ -228,8 +230,15 @@ export class RouteManager {
       if (mount.resolvedFilePath) {
         const base = mount.resolvedFilePath;
         const candidates = [
-          base, base + '.js', base + '.ts', base + '.mjs', base + '.cjs',
-          base + '.py', base + '/index.js', base + '/index.ts', base + '/__init__.py',
+          base,
+          base + '.js',
+          base + '.ts',
+          base + '.mjs',
+          base + '.cjs',
+          base + '.py',
+          base + '/index.js',
+          base + '/index.ts',
+          base + '/__init__.py',
         ];
         for (const candidate of candidates) {
           const normalized = candidate.replace(/\\/g, '/').toLowerCase();
@@ -239,7 +248,7 @@ export class RouteManager {
     }
 
     // Strategy 2: Variable-name matching (Flask/FastAPI)
-    const varNameMounts = allMountPrefixes.filter(m => m.variableName);
+    const varNameMounts = allMountPrefixes.filter((m) => m.variableName);
 
     const varFilePrefixMap = new Map<string, string>();
     if (varNameMounts.length > 0) {
@@ -250,7 +259,10 @@ export class RouteManager {
           continue;
         }
 
-        const fileBaseName = import_path.basename(filePath).replace(/\.\w+$/, '').toLowerCase();
+        const fileBaseName = import_path
+          .basename(filePath)
+          .replace(/\.\w+$/, '')
+          .toLowerCase();
 
         for (const mount of varNameMounts) {
           const varName = mount.variableName!;
@@ -269,7 +281,7 @@ export class RouteManager {
             // identifier used in route definitions within this file
             const pattern = new RegExp(
               `(?:@${this.escapeRegex(varName)}\\.|\\b${this.escapeRegex(varName)}\\.)` +
-              `(?:route|get|post|put|delete|patch|head|options|all|api_route)\\s*\\(`,
+                `(?:route|get|post|put|delete|patch|head|options|all|api_route)\\s*\\(`,
             );
             if (pattern.test(content)) {
               varFilePrefixMap.set(filePath, mount.prefix);
@@ -302,9 +314,8 @@ export class RouteManager {
       if (!route.path.startsWith(prefix)) {
         const normalizedPrefix = prefix.endsWith('/') ? prefix.slice(0, -1) : prefix;
         const normalizedRoute = route.path.startsWith('/') ? route.path : '/' + route.path;
-        route.path = normalizedRoute === '/'
-          ? (normalizedPrefix || '/')
-          : normalizedPrefix + normalizedRoute;
+        route.path =
+          normalizedRoute === '/' ? normalizedPrefix || '/' : normalizedPrefix + normalizedRoute;
       }
     }
   }

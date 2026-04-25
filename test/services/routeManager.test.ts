@@ -18,28 +18,19 @@ describe('deduplicateRoutes', () => {
   });
 
   it('should keep routes with different methods', () => {
-    const routes = [
-      makeRoute({ method: 'GET' }),
-      makeRoute({ method: 'POST' }),
-    ];
+    const routes = [makeRoute({ method: 'GET' }), makeRoute({ method: 'POST' })];
     const result = deduplicateRoutes(routes);
     expect(result).toHaveLength(2);
   });
 
   it('should keep routes with different paths', () => {
-    const routes = [
-      makeRoute({ path: '/users' }),
-      makeRoute({ path: '/items' }),
-    ];
+    const routes = [makeRoute({ path: '/users' }), makeRoute({ path: '/items' })];
     const result = deduplicateRoutes(routes);
     expect(result).toHaveLength(2);
   });
 
   it('should keep routes with different line numbers', () => {
-    const routes = [
-      makeRoute({ lineNumber: 1 }),
-      makeRoute({ lineNumber: 5 }),
-    ];
+    const routes = [makeRoute({ lineNumber: 1 }), makeRoute({ lineNumber: 5 })];
     const result = deduplicateRoutes(routes);
     expect(result).toHaveLength(2);
   });

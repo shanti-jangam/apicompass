@@ -175,10 +175,9 @@ describe('FastApiParser', () => {
     });
 
     it('should ignore include_router without prefix', () => {
-      const content = [
-        `from .routers import main_router`,
-        `app.include_router(main_router)`,
-      ].join('\n');
+      const content = [`from .routers import main_router`, `app.include_router(main_router)`].join(
+        '\n',
+      );
 
       const mounts = parser.extractMountPrefixes('/project/main.py', content);
 

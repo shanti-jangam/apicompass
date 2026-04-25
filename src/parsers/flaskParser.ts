@@ -53,8 +53,7 @@ export class FlaskParser extends RouteParser {
    */
   private parseBlueprintPrefixes(content: string): Map<string, string> {
     const prefixMap = new Map<string, string>();
-    const blueprintPattern =
-      /(\w+)\s*=\s*Blueprint\s*\([^)]*url_prefix\s*=\s*['"]([^'"]*)['"]/g;
+    const blueprintPattern = /(\w+)\s*=\s*Blueprint\s*\([^)]*url_prefix\s*=\s*['"]([^'"]*)['"]/g;
 
     let match: RegExpExecArray | null;
     while ((match = blueprintPattern.exec(content)) !== null) {
@@ -171,14 +170,13 @@ export class FlaskParser extends RouteParser {
 
     // Find app.register_blueprint(var, url_prefix='/prefix')
     // or   app.register_blueprint(module.attr, url_prefix='/prefix')
-    const registerPattern =
-      /\b\w+\.register_blueprint\s*\(\s*([\w.]+)[^)]*\)/g;
+    const registerPattern = /\b\w+\.register_blueprint\s*\(\s*([\w.]+)[^)]*\)/g;
     let rm: RegExpExecArray | null;
     while ((rm = registerPattern.exec(content)) !== null) {
       const bpRef = rm[1];
       const callBody = rm[0];
 
-      const prefixMatch = /url_prefix\s*=\s*['"]([^'"]*)['"]/. exec(callBody);
+      const prefixMatch = /url_prefix\s*=\s*['"]([^'"]*)['"]/.exec(callBody);
       if (!prefixMatch) {
         continue;
       }

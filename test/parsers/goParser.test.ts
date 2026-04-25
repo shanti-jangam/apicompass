@@ -104,12 +104,7 @@ describe('GoParser', () => {
     });
 
     it('should parse multi-line route definitions', () => {
-      const content = [
-        `router.GET(`,
-        `    "/statistics",`,
-        `    getStatistics,`,
-        `)`,
-      ].join('\n');
+      const content = [`router.GET(`, `    "/statistics",`, `    getStatistics,`, `)`].join('\n');
 
       const result = parser.parse('/project/main.go', content);
 

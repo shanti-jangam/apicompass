@@ -3,10 +3,34 @@ import { RouteExporter } from '../../src/services/routeExporter';
 
 describe('RouteExporter', () => {
   const sampleRoutes: Route[] = [
-    { method: 'GET', path: '/users', filePath: '/project/routes.js', lineNumber: 5, framework: 'express' },
-    { method: 'POST', path: '/users', filePath: '/project/routes.js', lineNumber: 10, framework: 'express' },
-    { method: 'GET', path: '/users/:id', filePath: '/project/routes.js', lineNumber: 15, framework: 'express' },
-    { method: 'DELETE', path: '/users/:id', filePath: '/project/routes.js', lineNumber: 20, framework: 'express' },
+    {
+      method: 'GET',
+      path: '/users',
+      filePath: '/project/routes.js',
+      lineNumber: 5,
+      framework: 'express',
+    },
+    {
+      method: 'POST',
+      path: '/users',
+      filePath: '/project/routes.js',
+      lineNumber: 10,
+      framework: 'express',
+    },
+    {
+      method: 'GET',
+      path: '/users/:id',
+      filePath: '/project/routes.js',
+      lineNumber: 15,
+      framework: 'express',
+    },
+    {
+      method: 'DELETE',
+      path: '/users/:id',
+      filePath: '/project/routes.js',
+      lineNumber: 20,
+      framework: 'express',
+    },
   ];
 
   describe('toJson', () => {
@@ -27,7 +51,14 @@ describe('RouteExporter', () => {
 
     it('should not include extra properties like handlerName', () => {
       const routes: Route[] = [
-        { method: 'GET', path: '/test', filePath: '/test.js', lineNumber: 1, framework: 'express', handlerName: 'handler' },
+        {
+          method: 'GET',
+          path: '/test',
+          filePath: '/test.js',
+          lineNumber: 1,
+          framework: 'express',
+          handlerName: 'handler',
+        },
       ];
       const json = RouteExporter.toJson(routes);
       const parsed = JSON.parse(json);
@@ -71,7 +102,13 @@ describe('RouteExporter', () => {
 
     it('should expand ALL method to multiple HTTP methods', () => {
       const routes: Route[] = [
-        { method: 'ALL', path: '/health', filePath: '/test.py', lineNumber: 1, framework: 'django' },
+        {
+          method: 'ALL',
+          path: '/health',
+          filePath: '/test.py',
+          lineNumber: 1,
+          framework: 'django',
+        },
       ];
       const output = RouteExporter.toOpenApi(routes, true);
       const spec = JSON.parse(output);

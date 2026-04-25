@@ -202,10 +202,7 @@ describe('FlaskParser', () => {
     });
 
     it('should ignore register_blueprint without url_prefix', () => {
-      const content = [
-        `from .main import main_bp`,
-        `app.register_blueprint(main_bp)`,
-      ].join('\n');
+      const content = [`from .main import main_bp`, `app.register_blueprint(main_bp)`].join('\n');
 
       const mounts = parser.extractMountPrefixes('/project/app.py', content);
 

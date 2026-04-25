@@ -65,9 +65,7 @@ export class FileScanner {
     for (const inc of includePaths) {
       // Combine user-supplied directory glob with the file-extension filter,
       // e.g. "src/api/**" → "src/api/**/*.{js,ts,mjs,cjs,py,go}"
-      const combined = inc.endsWith('/**')
-        ? `${inc}/${fileExtGlob}`
-        : `${inc}/**/${fileExtGlob}`;
+      const combined = inc.endsWith('/**') ? `${inc}/${fileExtGlob}` : `${inc}/**/${fileExtGlob}`;
 
       const pattern = new vscode.RelativePattern(folderUri, combined);
       const uris = await vscode.workspace.findFiles(pattern, excludeGlob);

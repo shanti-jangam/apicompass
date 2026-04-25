@@ -167,10 +167,7 @@ describe('ExpressParser', () => {
     });
 
     it('should not modify routes when no app.use prefix exists', () => {
-      const content = [
-        `const app = express();`,
-        `app.get('/users', handler);`,
-      ].join('\n');
+      const content = [`const app = express();`, `app.get('/users', handler);`].join('\n');
 
       const result = parser.parse('/project/routes.js', content);
 
@@ -221,7 +218,7 @@ describe('ExpressParser', () => {
 
       const result = parser.parse('/project/index.js', content);
 
-      const routeRoutes = result.routes.filter(r => r.path === '/api/ping');
+      const routeRoutes = result.routes.filter((r) => r.path === '/api/ping');
       expect(routeRoutes).toHaveLength(2);
     });
   });
@@ -260,10 +257,7 @@ describe('ExpressParser', () => {
     });
 
     it('should ignore non-relative requires', () => {
-      const content = [
-        `const cors = require('cors');`,
-        `app.use('/api', cors);`,
-      ].join('\n');
+      const content = [`const cors = require('cors');`, `app.use('/api', cors);`].join('\n');
 
       const mounts = parser.extractMountPrefixes('/project/index.js', content);
 

@@ -114,8 +114,7 @@ export class GoParser extends RouteParser {
    * Parses http.HandleFunc("/path", handler) and mux.HandleFunc("/path", handler).
    */
   private parseHandleFunc(content: string, filePath: string, routes: Route[]): void {
-    const handleFuncPattern =
-      /\b\w+\.HandleFunc\s*\(\s*["'](\/[^"']*)["']/g;
+    const handleFuncPattern = /\b\w+\.HandleFunc\s*\(\s*["'](\/[^"']*)["']/g;
 
     let match: RegExpExecArray | null;
     while ((match = handleFuncPattern.exec(content)) !== null) {

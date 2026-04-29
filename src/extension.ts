@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { Route } from './models/route';
 import { RouteExporter } from './services/routeExporter';
 import { RouteManager } from './services/routeManager';
+import { Config } from './utils/config';
 import { Logger } from './utils/logger';
 import { RouteTreeDataProvider } from './views/treeDataProvider';
 
@@ -11,6 +12,7 @@ import { RouteTreeDataProvider } from './views/treeDataProvider';
  */
 export function activate(context: vscode.ExtensionContext): void {
   const logger = Logger.getInstance();
+  const config = Config.getInstance();
   logger.info('APICompass extension is activating...');
 
   // ── Core services ──────────────────────────────────────────────
@@ -24,9 +26,18 @@ export function activate(context: vscode.ExtensionContext): void {
   });
 
   // ── Commands ───────────────────────────────────────────────────
+  const showDisabledMessage = () => {
+    vscode.window.showInformationMessage(
+      'APICompass is disabled for this workspace. Set "apicompass.enabled" to true to enable it.',
+    );
+  };
 
   // Refresh: re-scan the whole workspace
   const refreshCmd = vscode.commands.registerCommand('apicompass.refresh', async () => {
+    if (!config.enabled) {
+      showDisabledMessage();
+      return;
+    }
     await routeManager.fullScan();
   });
 
@@ -50,6 +61,11 @@ export function activate(context: vscode.ExtensionContext): void {
 
   // Search: quick-pick search across all routes
   const searchCmd = vscode.commands.registerCommand('apicompass.searchRoutes', async () => {
+    if (!config.enabled) {
+      showDisabledMessage();
+      return;
+    }
+
     const query = await vscode.window.showInputBox({
       prompt: 'Search API routes by path, method, or file name',
       placeHolder: 'e.g. /users, POST, auth',
@@ -112,6 +128,11 @@ export function activate(context: vscode.ExtensionContext): void {
 
   // Export as JSON
   const exportJsonCmd = vscode.commands.registerCommand('apicompass.exportJson', async () => {
+    if (!config.enabled) {
+      showDisabledMessage();
+      return;
+    }
+
     const routes = routeManager.getAllRoutes();
     if (routes.length === 0) {
       vscode.window.showInformationMessage('No routes to export. Run a scan first.');
@@ -131,6 +152,11 @@ export function activate(context: vscode.ExtensionContext): void {
 
   // Export as OpenAPI
   const exportOpenApiCmd = vscode.commands.registerCommand('apicompass.exportOpenApi', async () => {
+    if (!config.enabled) {
+      showDisabledMessage();
+      return;
+    }
+
     const routes = routeManager.getAllRoutes();
     if (routes.length === 0) {
       vscode.window.showInformationMessage('No routes to export. Run a scan first.');
@@ -151,6 +177,7 @@ export function activate(context: vscode.ExtensionContext): void {
 
   // ── File watcher ───────────────────────────────────────────────
   const watcher = vscode.workspace.createFileSystemWatcher('**/*.{js,ts,mjs,cjs,py,go}');
+  let watcherDisposables: vscode.Disposable[] = [];
 
   // Debounce helper
   let debounceTimer: NodeJS.Timeout | undefined;
@@ -163,9 +190,40 @@ export function activate(context: vscode.ExtensionContext): void {
     }, 500);
   };
 
-  watcher.onDidChange((uri) => debouncedUpdate(uri.fsPath));
-  watcher.onDidCreate((uri) => debouncedUpdate(uri.fsPath));
-  watcher.onDidDelete((uri) => routeManager.removeFile(uri.fsPath));
+  const enableWatchers = () => {
+    watcherDisposables.forEach((disposable) => disposable.dispose());
+    watcherDisposables = [
+      watcher.onDidChange((uri) => debouncedUpdate(uri.fsPath)),
+      watcher.onDidCreate((uri) => debouncedUpdate(uri.fsPath)),
+      watcher.onDidDelete((uri) => routeManager.removeFile(uri.fsPath)),
+    ];
+  };
+
+  const disableWatchers = () => {
+    watcherDisposables.forEach((disposable) => disposable.dispose());
+    watcherDisposables = [];
+  };
+
+  const configChangeListener = vscode.workspace.onDidChangeConfiguration(async (event) => {
+    if (!event.affectsConfiguration('apicompass.enabled')) {
+      return;
+    }
+
+    if (config.enabled) {
+      logger.info(
+        'APICompass was enabled via configuration change. Starting full scan and file watching.',
+      );
+      enableWatchers();
+      await routeManager.fullScan();
+    } else {
+      logger.info(
+        'APICompass was disabled via configuration change. Clearing routes and stopping file watching.',
+      );
+      disableWatchers();
+      routeManager.clearRoutes();
+      treeDataProvider.refresh();
+    }
+  });
 
   // ── Register disposables ───────────────────────────────────────
   context.subscriptions.push(
@@ -177,6 +235,7 @@ export function activate(context: vscode.ExtensionContext): void {
     copyAsCurlCmd,
     exportJsonCmd,
     exportOpenApiCmd,
+    configChangeListener,
     watcher,
     routeManager,
     treeDataProvider,
@@ -184,7 +243,16 @@ export function activate(context: vscode.ExtensionContext): void {
   );
 
   // ── Initial scan ───────────────────────────────────────────────
-  routeManager.fullScan();
+  if (config.enabled) {
+    enableWatchers();
+    routeManager.fullScan();
+  } else {
+    disableWatchers();
+    logger.info(
+      'APICompass is disabled for this workspace via "apicompass.enabled". Skipping scan and file watching.',
+    );
+    treeDataProvider.refresh();
+  }
 
   logger.info('APICompass extension activated successfully.');
 }

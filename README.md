@@ -195,12 +195,18 @@ Install the `.vsix` file via _Extensions > ··· > Install from VSIX…_ in VS 
 
 Open **Settings** (`Ctrl+,`) and search for `apicompass`.
 
-| Setting                        | Default                                                     | Description                                      |
-| ------------------------------ | ----------------------------------------------------------- | ------------------------------------------------ |
-| `apicompass.includePaths`      | `[]` (scan everything)                                      | Glob patterns for folders to include             |
-| `apicompass.excludePaths`      | `node_modules, .git, venv, __pycache__, dist, build`        | Glob patterns for folders to skip                |
-| `apicompass.enabledFrameworks` | `["express", "flask", "django", "fastapi", "go", "nestjs"]` | Which frameworks to scan for                     |
-| `apicompass.groupBy`           | `"file"`                                                    | Group routes by `file`, `method`, or `framework` |
+| Setting                        | Default                                                     | Description                                        |
+| ------------------------------ | ----------------------------------------------------------- | -------------------------------------------------- |
+| `apicompass.enabled`           | `true`                                                      | Enable or disable APICompass for current workspace |
+| `apicompass.includePaths`      | `[]` (scan everything)                                      | Glob patterns for folders to include               |
+| `apicompass.excludePaths`      | `node_modules, .git, venv, __pycache__, dist, build`        | Glob patterns for folders to skip                  |
+| `apicompass.enabledFrameworks` | `["express", "flask", "django", "fastapi", "go", "nestjs"]` | Which frameworks to scan for                       |
+| `apicompass.groupBy`           | `"file"`                                                    | Group routes by `file`, `method`, or `framework`   |
+
+Notes:
+
+- Changing `apicompass.enabled` is applied immediately (no reload needed). Turning it on triggers a fresh full scan and starts file watching; turning it off clears routes and stops file watching.
+- When disabled, the sidebar shows a disabled-state message instead of the generic "No API routes found" message.
 
 ---
 

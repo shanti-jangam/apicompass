@@ -99,6 +99,14 @@ export class RouteManager {
   }
 
   /**
+   * Clears all cached routes and notifies listeners.
+   */
+  clearRoutes(): void {
+    this.routes.clear();
+    this._onRoutesChanged.fire();
+  }
+
+  /**
    * Returns all discovered routes, sorted by file and line number.
    */
   getAllRoutes(): Route[] {

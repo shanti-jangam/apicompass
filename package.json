@@ -151,6 +151,11 @@
     "configuration": {
       "title": "APICompass",
       "properties": {
+        "apicompass.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable APICompass route scanning for the current workspace."
+        },
         "apicompass.includePaths": {
           "type": "array",
           "default": [],

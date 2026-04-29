@@ -22,6 +22,10 @@ export class Config {
     return vscode.workspace.getConfiguration('apicompass');
   }
 
+  get enabled(): boolean {
+    return this.config.get<boolean>('enabled', true);
+  }
+
   get includePaths(): string[] {
     return this.config.get<string[]>('includePaths', []);
   }

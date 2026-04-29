@@ -62,6 +62,15 @@ export class RouteTreeDataProvider implements vscode.TreeDataProvider<RouteTreeI
    * Builds root-level tree items based on the configured grouping.
    */
   private getRootItems(): RouteTreeItem[] {
+    if (!this.config.enabled) {
+      return [
+        new RouteTreeItem(
+          'APICompass is disabled for this workspace (apicompass.enabled = false).',
+          vscode.TreeItemCollapsibleState.None,
+        ),
+      ];
+    }
+
     const routes = this.routeManager.getAllRoutes();
 
     if (routes.length === 0) {

@@ -120,7 +120,8 @@ export function activate(context: vscode.ExtensionContext): void {
         return;
       }
       const method = route.method === 'ALL' ? 'GET' : route.method;
-      const curl = `curl -X ${method} http://localhost:3000${route.path}`;
+      const pathPart = route.path.startsWith('/') ? route.path : `/${route.path}`;
+      const curl = `curl -X ${method} ${config.curlBaseUrl}${pathPart}`;
       await vscode.env.clipboard.writeText(curl);
       vscode.window.showInformationMessage(`Copied: ${curl}`);
     },

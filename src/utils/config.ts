@@ -55,4 +55,11 @@ export class Config {
   get groupBy(): 'file' | 'method' | 'framework' {
     return this.config.get<'file' | 'method' | 'framework'>('groupBy', 'file');
   }
+
+  /** Base URL for "Copy as cURL" (no trailing slash). */
+  get curlBaseUrl(): string {
+    const raw = this.config.get<string>('curlBaseUrl', 'http://localhost:3000').trim();
+    const base = (raw || 'http://localhost:3000').replace(/\/+$/, '');
+    return base;
+  }
 }

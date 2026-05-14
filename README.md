@@ -184,7 +184,7 @@ npm test
 ### Package as .vsix
 
 ```bash
-npm run package        # produces apicompass-0.1.0.vsix
+npm run package        # produces apicompass-<version>.vsix (see `version` in package.json)
 ```
 
 Install the `.vsix` file via _Extensions > ··· > Install from VSIX…_ in VS Code.
@@ -195,18 +195,20 @@ Install the `.vsix` file via _Extensions > ··· > Install from VSIX…_ in VS 
 
 Open **Settings** (`Ctrl+,`) and search for `apicompass`.
 
-| Setting                        | Default                                                     | Description                                        |
-| ------------------------------ | ----------------------------------------------------------- | -------------------------------------------------- |
-| `apicompass.enabled`           | `true`                                                      | Enable or disable APICompass for current workspace |
-| `apicompass.includePaths`      | `[]` (scan everything)                                      | Glob patterns for folders to include               |
-| `apicompass.excludePaths`      | `node_modules, .git, venv, __pycache__, dist, build`        | Glob patterns for folders to skip                  |
-| `apicompass.enabledFrameworks` | `["express", "flask", "django", "fastapi", "go", "nestjs"]` | Which frameworks to scan for                       |
-| `apicompass.groupBy`           | `"file"`                                                    | Group routes by `file`, `method`, or `framework`   |
+| Setting                        | Default                                                     | Description                                                  |
+| ------------------------------ | ----------------------------------------------------------- | ------------------------------------------------------------ |
+| `apicompass.enabled`           | `true`                                                      | Enable or disable APICompass for current workspace           |
+| `apicompass.includePaths`      | `[]` (scan everything)                                      | Glob patterns for folders to include                         |
+| `apicompass.excludePaths`      | `node_modules, .git, venv, __pycache__, dist, build`        | Glob patterns for folders to skip                            |
+| `apicompass.enabledFrameworks` | `["express", "flask", "django", "fastapi", "go", "nestjs"]` | Which frameworks to scan for                                 |
+| `apicompass.groupBy`           | `"file"`                                                    | Group routes by `file`, `method`, or `framework`             |
+| `apicompass.curlBaseUrl`       | `http://localhost:3000`                                     | Base URL for **Copy as cURL** (e.g. `http://127.0.0.1:8000`) |
 
 Notes:
 
 - Changing `apicompass.enabled` is applied immediately (no reload needed). Turning it on triggers a fresh full scan and starts file watching; turning it off clears routes and stops file watching.
 - When disabled, the sidebar shows a disabled-state message instead of the generic "No API routes found" message.
+- **`apicompass.curlBaseUrl`** is used when you copy a route as cURL. Trailing slashes on the base are trimmed so the route path still joins correctly.
 
 ---
 
@@ -299,7 +301,7 @@ Test fixtures for Express, NestJS, Flask, Django, FastAPI, and Go are in `test/f
 - [x] Export routes to JSON / OpenAPI stub - done
 - [x] CI/CD pipeline (GitHub Actions) - done
 - [x] Production packaging (.vscodeignore, CHANGELOG, LICENSE) - done
-- [ ] Publish to VS Code Marketplace
+- [x] Publish to VS Code Marketplace
 
 ---
 

@@ -21,4 +21,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Export** all routes to JSON or OpenAPI 3.0 (YAML/JSON).
 - **Keyboard shortcuts**: `Ctrl+Shift+A R` to refresh, `Ctrl+Shift+A S` to search.
 - **Context menus**: right-click a route to copy its path or a cURL command.
-- **Configurable** include/exclude paths, enabled frameworks, and grouping style via VS Code settings.
+- **Configurable** extension enable/disable, export baseUrl, include/exclude paths, enabled frameworks, and grouping style via VS Code settings.

@@ -1,0 +1,77 @@
+name: Publish Extension
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Git tag to publish (example: v0.1.5)'
+        required: true
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate Tag Exists
+        run: |
+          git fetch --tags
+
+          if ! git rev-parse "${{ github.event.inputs.tag }}" >/dev/null 2>&1; then
+            echo "Tag does not exist"
+            exit 1
+          fi
+
+      - name: Checkout Tag
+        run: |
+          git checkout tags/${{ github.event.inputs.tag }}
+
+      - name: Verify Tag Is From Main Branch
+        run: |
+          git fetch origin main
+
+          TAG_COMMIT=$(git rev-list -n 1 ${{ github.event.inputs.tag }})
+
+          if ! git branch --remote --contains $TAG_COMMIT | grep origin/main; then
+            echo "Tag is not from main branch"
+            exit 1
+          fi
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Install Publishing Tools
+        run: npm install -g vsce ovsx
+
+      - name: Package Extension
+        run: vsce package
+
+      - name: Publish to VS Code Marketplace
+        run: vsce publish -p ${{ secrets.VSCE_TOKEN }}
+
+      - name: Publish to OpenVSX
+        run: ovsx publish -p ${{ secrets.OVSX_TOKEN }}
+
+      - name: Get VSIX File
+        id: vsix
+        run: |
+          echo "VSIX_FILE=$(ls *.vsix)" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event.inputs.tag }}
+          files: ${{ steps.vsix.outputs.VSIX_FILE }}
+          generate_release_notes: true

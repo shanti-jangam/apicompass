@@ -1,8 +1,8 @@
 # APICompass
 
-**Automated API Route Visualizer for VS Code**
+**Automated API Route Visualizer**
 
-APICompass is a Visual Studio Code extension that scans your backend codebase and gives you an organized, clickable tree of every REST API endpoint - right inside the editor sidebar. It supports **Express.js**, **NestJS**, **Flask**, **Django**, **FastAPI**, and **Go** (Gin, Echo, Chi, Fiber, net/http) out of the box, and updates automatically as you edit your code.
+APICompass is a extension that scans your backend codebase and gives you an organized, clickable tree of every REST API endpoint - right inside the editor sidebar. It supports **Express.js**, **NestJS**, **Flask**, **Django**, **FastAPI**, and **Go** (Gin, Echo, Chi, Fiber, net/http) out of the box, and updates automatically as you edit your code.
 
 ---
 
@@ -174,7 +174,7 @@ npm test
 
 ### Launch in Development Mode
 
-1. Open the `apicompass` folder in VS Code.
+1. Open the `apicompass` folder in IDE (VS Code/Cursor).
 2. Press **F5** (or choose _Run > Start Debugging_).
 3. A new _Extension Development Host_ window opens.
 4. Open any project that contains Express, NestJS, Flask, Django, FastAPI, or Go routes.
@@ -187,7 +187,7 @@ npm test
 npm run package        # produces apicompass-<version>.vsix (see `version` in package.json)
 ```
 
-Install the `.vsix` file via _Extensions > ··· > Install from VSIX…_ in VS Code.
+Install the `.vsix` file via _Extensions > ··· > Install from VSIX…_ in VS Code/Cursor.
 
 ---
 
@@ -301,7 +301,7 @@ Test fixtures for Express, NestJS, Flask, Django, FastAPI, and Go are in `test/f
 - [x] Export routes to JSON / OpenAPI stub - done
 - [x] CI/CD pipeline (GitHub Actions) - done
 - [x] Production packaging (.vscodeignore, CHANGELOG, LICENSE) - done
-- [x] Publish to VS Code Marketplace
+- [x] Publish to VS Code/Cursor Marketplace
 
 ---
 

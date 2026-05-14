@@ -6,7 +6,7 @@ node_modules/
 .gitignore
 .eslintrc.js
 .prettierrc
-jest.config.js
+jest.config.mjs
 webpack.config.js
 tsconfig.json
 coverage/

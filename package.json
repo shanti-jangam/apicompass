@@ -205,8 +205,8 @@
     "lint": "eslint src test --ext ts",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "format:check": "prettier --check \"src/**/*.ts\" \"test/**/*.ts\"",
-    "test": "jest --config jest.config.js",
-    "test:coverage": "jest --config jest.config.js --coverage",
+    "test": "jest --config jest.config.mjs",
+    "test:coverage": "jest --config jest.config.mjs --coverage",
     "package": "vsce package"
   },
   "devDependencies": {
